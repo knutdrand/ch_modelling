@@ -20,6 +20,7 @@ def evaluate_estimator(estimator, train_ds, test_ds):
     tss = list(ts_it)
     agg_metrics, item_metrics = evaluator(tss, forecasts)
     print(agg_metrics['QuantileLoss[0.9]'])
+    print(len(tss), len(forecasts))
     for forecast_entry, ts_entry in zip(forecasts, tss):
          plt.plot(ts_entry[-150:].to_timestamp())
          forecast_entry.plot(show_label=True)

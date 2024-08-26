@@ -10,20 +10,33 @@ from ch_modelling.evaluation import evaluate_estimator
 
 custom_ds_metadata = {'prediction_length': 12}
 train, test = get_split_dataset('full', n_periods=custom_ds_metadata['prediction_length'])
+train = list(train)
+print(train[0])
+caridinalities = [max(t['feat_static_cat'][i] for t in train)+1 for i in range(2)]
 
 estimator = DeepAREstimator(
             num_layers=2,
-            hidden_size=16,
+            hidden_size=12,
+            weight_decay=1e-4,
             dropout_rate=0.2,
+            num_feat_static_cat=2,
+            embedding_dimension=[4, 4],
+            cardinality=caridinalities,
             prediction_length=custom_ds_metadata["prediction_length"],
             freq='M',
             distr_output=NegativeBinomialOutput(),
             trainer_kwargs={
                 "enable_progress_bar": False,
                 "enable_model_summary": False,
-                "max_epochs": 10,
+                "max_epochs": 50,
             },
         )
+
+#191876438.02773434
+#72498614112.8277
+#1106470.8277343747
+#4884897.627734374
+
 
 
 train_ds = ListDataset(train, freq='1M')
