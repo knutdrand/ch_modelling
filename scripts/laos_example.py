@@ -1,4 +1,6 @@
-from climate_health.gluonts_adaptor.dataset import get_split_dataset, get_dataset
+from climate_health.data.gluonts_adaptor.dataset import get_dataset
+from climate_health.data.datasets import ISIMIP_dengue_harmonized
+from climate_health.data import adaptors
 from gluonts.time_feature import time_features_from_frequency_str
 from gluonts.dataset.common import ListDataset
 from gluonts.dataset.split import split
@@ -6,29 +8,18 @@ from gluonts.torch import DeepAREstimator
 from gluonts.torch.distributions import NegativeBinomialOutput
 from gluonts.torch.model.mqf2 import MQF2MultiHorizonEstimator
 from gluonts.transform import (AddAgeFeature, AddTimeFeatures, Chain, )
-from ch_modelling.evaluation import evaluate_estimator, multi_evaluate_estimator, evaluate_on_split
-prediction_length = 6
+from ch_modelling.evaluation import evaluate_estimator, multi_evaluate_estimator, evaluate_on_split, plot_forecasts
+prediction_length = 4
 
-if __name__ == '__main__':
-    custom_ds_metadata = {'prediction_length': prediction_length}
-    datasset_name = 'full'
-    ds = ListDataset(get_dataset(datasset_name), freq='1M')
+
+def main(ds, n_static, prediction_length, metadata=None, name='main'):
     transform = Chain([
         AddTimeFeatures(start_field='start', target_field='target', output_field='time_feat', pred_length=prediction_length, time_features=time_features_from_frequency_str('1M')),
         AddAgeFeature(target_field='target', output_field='age', pred_length=prediction_length)])
-    #ds = transform.apply(ds, is_train=True)
+    ds = transform.apply(ds, is_train=True)
     #train, test = get_split_dataset('laos_full_data', n_periods=12)
     train_ds, test_template = split(ds, offset=-12)
-    test_instances = test_template.generate_instances(prediction_length=prediction_length, windows=7, distance=1)
-    #test_instances= (t[0] for t in test_instances)
-    # for t in test_instances:
-    #     print('###############')
-    #     print(len(t[0]['target']))
-    #     print(len(t[1]['target']))
-
-    #train_ds = ListDataset(train, freq='1M')
-    #test_ds = ListDataset(test, freq='1M')
-    n_static = 2
+    test_instances = test_template.generate_instances(prediction_length=prediction_length, windows=12-prediction_length+1, distance=1)
     caridinalities = [max(t['feat_static_cat'][i] for t in train_ds) + 1 for i in range(n_static)]
     estimator = DeepAREstimator(
         num_layers=2,
@@ -43,13 +34,35 @@ if __name__ == '__main__':
         trainer_kwargs={
             "enable_progress_bar": False,
             "enable_model_summary": False,
-            "max_epochs": 40,
+            "max_epochs": 50,
         },
     )
-    metrics = evaluate_on_split(estimator.train(train_ds), test_instances)
-
+    estimator = estimator.train(train_ds)
+    metrics = evaluate_on_split(estimator, test_instances)
+    plot_forecasts(estimator, test_template.generate_instances(prediction_length=prediction_length, windows=12//prediction_length, distance=prediction_length),
+                   metadata, name=name)
     print(metrics)
-exit()
+
+def remove_predictors(ds):
+    return ListDataset([{k: v for k, v in entry.items() if k != 'feat_dynamic_real'} for entry in ds],
+                       freq='1M')
+
+
+if __name__ == '__main__':
+    custom_ds_metadata = {'prediction_length': prediction_length}
+    country_name = 'vietnam'
+    ds = ISIMIP_dengue_harmonized
+    ds = ds[country_name]
+    dataset = adaptors.gluonts.from_dataset(ds)
+    metadata = adaptors.gluonts.get_metadata(ds)
+    datasset_name, n_static = country_name, 1
+    #datasset_name, n_static = 'full', 2
+    #datasset_name, n_static = 'laos_full_data', 1
+    #dataset, metadata = get_dataset(datasset_name, with_metadata=True)
+    ds = ListDataset(dataset, freq='1M')
+    naive_ds = remove_predictors(ds)
+    main(naive_ds, n_static, prediction_length, metadata, name=f'{datasset_name}_naive')
+    main(ds, n_static, prediction_length, metadata, f'{datasset_name}_full')
 # params = {'hidden_size': [8, 16, 32],
 #           'dropout_rate': [0.1, 0.2, 0.3]}
 # results = {}

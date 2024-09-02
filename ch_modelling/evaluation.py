@@ -14,12 +14,11 @@ from gluonts.evaluation import Evaluator
 from gluonts.model.forecast import Forecast
 from gluonts.model.predictor import Predictor
 from gluonts.itertools import maybe_len
-
+from matplotlib.backends.backend_pdf import PdfPages
 from gluonts.evaluation import Evaluator, make_evaluation_predictions
 from matplotlib import pyplot as plt
 
 #from scripts.laos_example import train_ds, test_ds
-
 
 def evaluate_estimator(estimator, train_ds, test_ds):
 
@@ -49,12 +48,33 @@ def evaluate_on_split(predictor, test_instances):
     forecasts = list(forecast_it)
     tss = list(ts_it)
     agg_metrics, item_metrics = evaluator(tss, forecasts)
-    for forecast_entry, ts_entry in zip(forecasts, tss):
-        plt.plot(ts_entry[-150:].to_timestamp())
-        forecast_entry.plot(show_label=True)
-        plt.legend()
-        plt.show()
+    # for forecast_entry, ts_entry in zip(forecasts, tss):
+    #     plt.plot(ts_entry[-150:].to_timestamp())
+    #     forecast_entry.plot(show_label=True)
+    #     plt.legend()
+    #     plt.show()
     return agg_metrics
+
+
+def plot_forecasts(predictor, test_instances, metadata, name='forecast'):
+    forecast_it = predictor.predict(test_instances.input, num_samples=100)
+    ts_it = map(_to_dataframe, test_instances)
+    forecasts = list(forecast_it)
+    tss = list(ts_it)
+    location_ids = [int(e['feat_static_cat'][-1]) for e in test_instances.input]
+    pdf_filename = f'{name}.pdf'
+    with PdfPages(pdf_filename) as pdf:
+        for forecast_entry, ts_entry, location_id in zip(forecasts, tss, location_ids):
+            plt.figure(figsize=(8, 4))  # Set the figure size
+            plt.plot(ts_entry[-150:].to_timestamp())
+            forecast_entry.plot(show_label=True)
+            plt.title(metadata['static_cat'][0][location_id])
+            plt.legend()
+            pdf.savefig()
+            plt.close()  # Close the figure
+
+
+
 
 def evaluate_predictor(predictor, test_ds):
     test_ds = list(test_ds)
