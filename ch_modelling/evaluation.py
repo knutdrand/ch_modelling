@@ -47,13 +47,8 @@ def evaluate_on_split(predictor, test_instances):
     forecast_it = predictor.predict(test_instances.input, num_samples=100)
     ts_it = map(_to_dataframe, test_instances)
     forecasts = list(forecast_it)
-    # forecast_entry = forecasts[0]
     tss = list(ts_it)
-    print(forecasts[0])
-    print(tss[0])
     agg_metrics, item_metrics = evaluator(tss, forecasts)
-    print(agg_metrics['QuantileLoss[0.9]'])
-    print(len(tss), len(forecasts))
     for forecast_entry, ts_entry in zip(forecasts, tss):
         plt.plot(ts_entry[-150:].to_timestamp())
         forecast_entry.plot(show_label=True)
