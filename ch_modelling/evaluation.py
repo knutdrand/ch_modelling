@@ -87,13 +87,13 @@ def evaluate_predictor(predictor, test_ds):
     forecasts = list(forecast_it)
     # forecast_entry = forecasts[0]
     tss = list(ts_it)
-    print(forecasts[0])
-    print(tss[0])
+    # print(forecasts[0])
+    # print(tss[0])
     agg_metrics, item_metrics = evaluator(tss, forecasts)
-    print(agg_metrics['QuantileLoss[0.9]'])
-    print(len(tss), len(forecasts))
+    # print(agg_metrics['QuantileLoss[0.9]'])
+    # print(len(tss), len(forecasts))
     for forecast_entry, ts_entry in zip(forecasts, tss):
-        print(type(forecast_entry))
+        # print(type(forecast_entry))
         plt.plot(ts_entry[-150:].to_timestamp())
         forecast_entry.plot(show_label=True)
         plt.legend()
