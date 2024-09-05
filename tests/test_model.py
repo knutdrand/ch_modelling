@@ -6,9 +6,7 @@ from ch_modelling.model import CHAPEstimator
 import pytest
 
 
-@pytest.fixture
-def dataset():
-    return ISIMIP_dengue_harmonized['vietnam']
+
 
 
 @pytest.fixture
@@ -21,8 +19,8 @@ def test_train(dataset):
     predictor = estimator.train(dataset)
 
 
-def test_predict(dataset):
-    predictor = CHAPEstimator(n_epochs=2).train(dataset)
-    train, test = train_test_split(dataset, prediction_start_period=dataset.period_range[-3])
-    forecasts = predictor.predict(train, test.remove_field('disease_cases'))
+def test_predict(split_dataset):
+    train, test = split_dataset
+    predictor = CHAPEstimator(n_epochs=2).train(train)
+    forecasts = predictor.predict(train, test)
     assert isinstance(forecasts, DataSet)
