@@ -1,4 +1,6 @@
 import dataclasses
+import json
+from pathlib import Path
 
 from climate_health.data import DataSet
 from climate_health.data.gluonts_adaptor.dataset import DataSetAdaptor
@@ -23,7 +25,15 @@ class CHAPPredictor:
         return DataSet(data)
 
     def save(self, filename: str):
+        filepath = Path(filename)
         self.gluonts_predictor.serialize(filename)
+        open(filepath / 'info.json', 'w').write(f'{{"prediction_length": {self.prediction_length}}}')
+
+    @classmethod
+    def load(cls, filename: str):
+        prediction_length = json.loads(open(Path(filename) / 'info.json').read())['prediction_length']
+        return CHAPPredictor(Predictor.deserialize(filename),
+                             prediction_length)
 
 
 @dataclasses.dataclass

@@ -1,11 +1,12 @@
 """Console script for ch_modelling."""
-from climate_health.datatypes import FullData
+from climate_health.datatypes import FullData, remove_field
 from cyclopts import App
 from climate_health.data import DataSet
 
-from ch_modelling.model import CHAPEstimator
+from ch_modelling.model import CHAPEstimator, CHAPPredictor
 
 app = App()
+
 
 @app.command()
 def train(training_data_filename: str, model_filename: str):
@@ -15,6 +16,7 @@ def train(training_data_filename: str, model_filename: str):
     predictor = CHAPEstimator().train(dataset)
     predictor.save(model_filename)
 
+
 @app.command()
 def predict(model_filename: str, historic_data_filename: str, future_data_filename: str, output_filename: str):
     '''
@@ -22,8 +24,11 @@ def predict(model_filename: str, historic_data_filename: str, future_data_filena
     and it will run as a command line function
     Simple function
     '''
-    dataset = DataSet.from_csv(historic_data_filename)
-    future_data = DataSet.from_csv(future_data_filename)
+    dataset = DataSet.from_csv(historic_data_filename, FullData)
+    future_data = DataSet.from_csv(future_data_filename, remove_field(FullData, 'disease_cases'))
+    predictor = CHAPPredictor.load(model_filename)
+    forecasts = predictor.predict(dataset, future_data)
+    forecasts.to_csv(output_filename)
 
 def main():
     typer.run(main_function)
