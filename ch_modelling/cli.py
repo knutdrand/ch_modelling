@@ -9,12 +9,12 @@ app = App()
 
 
 @app.command()
-def train(training_data_filename: str, model_filename: str):
+def train(training_data_filename: str, model_path: str):
     '''
     '''
     dataset = DataSet.from_csv(training_data_filename, FullData)
     predictor = CHAPEstimator().train(dataset)
-    predictor.save(model_filename)
+    predictor.save(model_path)
 
 
 @app.command()
@@ -30,9 +30,10 @@ def predict(model_filename: str, historic_data_filename: str, future_data_filena
     forecasts = predictor.predict(dataset, future_data)
     forecasts.to_csv(output_filename)
 
+
 def main():
-    typer.run(main_function)
+    app()
 
 
 if __name__ == "__main__":
-    main()
+    app()
