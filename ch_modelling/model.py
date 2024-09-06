@@ -27,13 +27,13 @@ class CHAPPredictor:
     def save(self, filename: str):
         filepath = Path(filename)
         filepath.mkdir(exist_ok=True, parents=True)
-        self.gluonts_predictor.serialize(filename)
+        self.gluonts_predictor.serialize(filepath)
         open(filepath / 'info.json', 'w').write(f'{{"prediction_length": {self.prediction_length}}}')
 
     @classmethod
     def load(cls, filename: str):
         prediction_length = json.loads(open(Path(filename) / 'info.json').read())['prediction_length']
-        return CHAPPredictor(Predictor.deserialize(filename),
+        return CHAPPredictor(Predictor.deserialize(Path(filename)),
                              prediction_length)
 
 

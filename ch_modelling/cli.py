@@ -14,6 +14,7 @@ def train(training_data_filename: str, model_path: str):
     '''
     dataset = DataSet.from_csv(training_data_filename, FullData)
     predictor = CHAPEstimator().train(dataset)
+    print("Saving model to", model_path)
     predictor.save(model_path)
 
 
