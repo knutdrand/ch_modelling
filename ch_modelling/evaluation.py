@@ -74,8 +74,6 @@ def plot_forecasts(predictor, test_instances, metadata, name='forecast'):
             plt.close()  # Close the figure
 
 
-
-
 def evaluate_predictor(predictor, test_ds):
     test_ds = list(test_ds)
     evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])

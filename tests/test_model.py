@@ -6,9 +6,6 @@ from climate_health.assessment.prediction_evaluator import evaluate_model
 import pytest
 
 
-
-
-
 @pytest.fixture
 def predictor(dataset):
     return CHAPEstimator().train(dataset)
@@ -25,8 +22,9 @@ def test_predict(split_dataset):
     forecasts = predictor.predict(train, test)
     assert isinstance(forecasts, DataSet)
 
+
 def test_evauate_model(dataset):
-    a, b = evaluate_model(CHAPEstimator(), dataset, prediction_length=3, n_test_sets=4)
+    a, b = evaluate_model(CHAPEstimator(n_epochs=2),
+                          dataset, prediction_length=3, n_test_sets=4, report_filename='test_report.pdf')
     print(a)
     print(b)
-
