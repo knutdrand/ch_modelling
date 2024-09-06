@@ -24,7 +24,7 @@ def test_predict(split_dataset):
 
 
 def test_evauate_model(dataset):
-    a, b = evaluate_model(CHAPEstimator(n_epochs=2),
+    a, b = evaluate_model(CHAPEstimator(n_epochs=20),
                           dataset, prediction_length=3, n_test_sets=4, report_filename='test_report.pdf')
     print(a)
     print(b)

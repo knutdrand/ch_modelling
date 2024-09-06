@@ -9,7 +9,7 @@ from climate_health.time_period import PeriodRange
 from gluonts.dataset.common import ListDataset
 from gluonts.model import Estimator, Predictor
 
-from ch_modelling.estimators import get_naive_estimator
+from ch_modelling.estimators import get_naive_estimator, get_deepar_estimator
 
 
 @dataclasses.dataclass
@@ -26,6 +26,7 @@ class CHAPPredictor:
 
     def save(self, filename: str):
         filepath = Path(filename)
+        filepath.mkdir(exist_ok=True, parents=True)
         self.gluonts_predictor.serialize(filename)
         open(filepath / 'info.json', 'w').write(f'{{"prediction_length": {self.prediction_length}}}')
 
@@ -44,5 +45,8 @@ class CHAPEstimator:
     def train(self, dataset: DataSet) -> CHAPPredictor:
         gluonts_dataset = DataSetAdaptor.to_gluonts(dataset)
         ds = ListDataset(gluonts_dataset, freq="m")
-        estimator = get_naive_estimator(dataset, prediction_length=self.prediction_length, n_epochs=self.n_epochs)
+        estimator= get_deepar_estimator(n_locations=len(dataset.keys()),
+                                        prediction_length=self.prediction_length,
+                                        trainer_kwargs={'max_epochs': self.n_epochs})
+        #estimator = get_naive_estimator(dataset, prediction_length=self.prediction_length, n_epochs=self.n_epochs)
         return CHAPPredictor(estimator.train(ds), self.prediction_length)
