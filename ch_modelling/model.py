@@ -45,8 +45,8 @@ class CHAPEstimator:
     def train(self, dataset: DataSet) -> CHAPPredictor:
         gluonts_dataset = DataSetAdaptor.to_gluonts(dataset)
         ds = ListDataset(gluonts_dataset, freq="m")
-        estimator= get_deepar_estimator(n_locations=len(dataset.keys()),
-                                        prediction_length=self.prediction_length,
-                                        trainer_kwargs={'max_epochs': self.n_epochs})
+        estimator = get_deepar_estimator(n_locations=len(dataset.keys()),
+                                         prediction_length=self.prediction_length,
+                                         trainer_kwargs={'max_epochs': self.n_epochs})
         #estimator = get_naive_estimator(dataset, prediction_length=self.prediction_length, n_epochs=self.n_epochs)
         return CHAPPredictor(estimator.train(ds), self.prediction_length)
