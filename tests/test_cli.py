@@ -35,7 +35,7 @@ def output_filename(tmp_path):
 
 
 def test_train(training_data_filename, model_filename):
-    train(training_data_filename, model_filename)
+    train(training_data_filename, model_filename, n_epochs=1)
     assert (model_filename / 'gluonts-config.json').exists()
 
 

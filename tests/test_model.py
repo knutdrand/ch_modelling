@@ -9,28 +9,28 @@ import pytest
 
 
 @pytest.fixture
-def predictor(dataset):
-    return CHAPEstimator().train(dataset)
+def predictor(dataset_brazil):
+    return CHAPEstimator().train(dataset_brazil)
 
 
-def test_train(dataset):
+def test_train(dataset_brazil):
     estimator = CHAPEstimator()
-    predictor = estimator.train(dataset)
+    predictor = estimator.train(dataset_brazil)
 
 
-def test_predict(split_dataset):
-    train, test = split_dataset
+def test_predict(split_dataset_brazil):
+    train, test = split_dataset_brazil
     predictor = CHAPEstimator(n_epochs=2).train(train)
     forecasts = predictor.predict(train, test)
     assert isinstance(forecasts, DataSet)
 
 
-def test_evauate_model(dataset):
-    estimator = get_deepar_estimator(n_locations=len(dataset.keys()),
+def test_evauate_model(dataset_brazil):
+    estimator = get_deepar_estimator(n_locations=len(dataset_brazil.keys()),
                                      prediction_length=3,
                                      trainer_kwargs={'max_epochs': 20})
     model = GluonTSEstimator(estimator)
     a, b = evaluate_model(model,# CHAPEstimator(n_epochs=20),
-                          dataset, prediction_length=3, n_test_sets=4, report_filename='test_report.pdf')
+                          dataset_brazil, prediction_length=3, n_test_sets=4, report_filename='test_report.pdf')
     print(a)
     print(b)

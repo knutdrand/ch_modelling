@@ -9,12 +9,11 @@ app = App()
 
 
 @app.command()
-def train(training_data_filename: str, model_path: str):
+def train(training_data_filename: str, model_path: str, n_epochs: int = 20, prediction_length: int = 3):
     '''
     '''
     dataset = DataSet.from_csv(training_data_filename, FullData)
-    predictor = CHAPEstimator().train(dataset)
-    print("Saving model to", model_path)
+    predictor = CHAPEstimator(prediction_length, n_epochs).train(dataset)
     predictor.save(model_path)
 
 
