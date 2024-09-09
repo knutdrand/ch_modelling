@@ -10,7 +10,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['typer', 'gluonts', 'plotly', 'pandas', 'matplotlib', 'torch', 'pytorch-lightning', 'gluonts[torch]']
+requirements = ['typer', 'gluonts', 'plotly', 'pandas', 'matplotlib',
+                'gluonts[torch]',
+                'git+https://github.com/dhis2/chap-core.git@dev']
 
 test_requirements = ['pytest>=3', "hypothesis"]
 
