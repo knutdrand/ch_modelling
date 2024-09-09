@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['typer', 'gluonts', 'plotly', 'pandas', 'matplotlib',
                 'gluonts[torch]',
-                'git+https://github.com/dhis2/chap-core.git@dev']
+                'climate_health @ git+https://github.com/dhis2/chap-core.git@dev']
 
 test_requirements = ['pytest>=3', "hypothesis"]
 
