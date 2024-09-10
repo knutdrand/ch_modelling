@@ -1,3 +1,4 @@
+import warnings
 from climate_health.data.gluonts_adaptor.dataset import get_dataset
 from climate_health.data.datasets import ISIMIP_dengue_harmonized
 from climate_health.data import adaptors
@@ -12,6 +13,7 @@ from ch_modelling.evaluation import evaluate_estimator, multi_evaluate_estimator
 prediction_length = 4
 good_params = {'num_layers': 2, 'hidden_size': 24, 'dropout_rate': 0.3, 'num_feat_dynamic_real': 0}
 params = {'num_layers': 2, 'hidden_size': 12, 'dropout_rate': 0.2, 'num_feat_dynamic_real': 3}
+
 
 def main(ds, n_static, prediction_length, metadata=None, name='main', params=params):
     transform = Chain([
@@ -38,7 +40,7 @@ def main(ds, n_static, prediction_length, metadata=None, name='main', params=par
         trainer_kwargs={
             "enable_progress_bar": False,
             "enable_model_summary": False,
-            "max_epochs": 2,
+            "max_epochs": 20,
         },
     )
     estimator = estimator.train(train_ds) # , validation_data=test_template)
@@ -54,20 +56,22 @@ def remove_predictors(ds):
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore", category=FutureWarning)
     custom_ds_metadata = {'prediction_length': prediction_length}
-    # country_name = 'vietnam'
-    # ds = ISIMIP_dengue_harmonized
-    # ds = ds[country_name]
-    # dataset = adaptors.gluonts.from_dataset(ds)
+    country_name = 'brazil'
+    ds = ISIMIP_dengue_harmonized
+    ds = ds[country_name]
+    dataset = adaptors.gluonts.from_dataset(ds)
+    metadata = adaptors.gluonts.get_metadata(ds)
     # metadata = adaptors.gluonts.get_metadata(ds)
-    # datasset_name, n_static = country_name, 1
+    datasset_name, n_static = country_name, 1
     #
-    datasset_name, n_static = 'full', 2
+    #datasset_name, n_static = 'full', 2
     #country_name = 'laos'
     #datasset_name, n_static = 'laos_full_data', 1
-    dataset, metadata = get_dataset(datasset_name, with_metadata=True)
+    #dataset, metadata = get_dataset(datasset_name, with_metadata=True)
     ds = ListDataset(dataset, freq='1M')
-    main(ds, n_static, prediction_length, metadata, f'{datasset_name}_full', params=params)
+    main(ds, n_static, prediction_length, metadata, f'{datasset_name}_full', params=good_params)
     #naive_ds = remove_predictors(ds)
     #main(naive_ds, n_static, prediction_length, metadata, name=f'{datasset_name}_naive')
 

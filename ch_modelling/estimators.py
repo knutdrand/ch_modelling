@@ -6,8 +6,8 @@ from gluonts.torch.distributions import NegativeBinomialOutput
 def get_deepar_estimator(n_locations, prediction_length, trainer_kwargs=None):
     return DeepAREstimator(
         num_layers=2,
-        hidden_size=24,
-        dropout_rate=0.3,
+        hidden_size=8,
+        dropout_rate=0.2,
         num_feat_static_cat=1,
         scaling=False,
         embedding_dimension=[2],
