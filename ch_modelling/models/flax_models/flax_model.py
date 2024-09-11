@@ -6,6 +6,7 @@ from flax import linen as nn
 import jax.numpy as jnp
 import jax.nn
 import optax
+from flax.linen import SimpleCell
 from flax.training import train_state
 from matplotlib import pyplot as plt
 
@@ -15,7 +16,7 @@ import jax
 from .trainer import Trainer, DataLoader
 from ...registry import register_model
 
-from .rnn_model import RNNModel, ARModel
+from .rnn_model import RNNModel, ARModel, Preprocess, ARModel2
 from ..jax_models.model_spec import skip_nan_distribution, Poisson, Normal, \
     NegativeBinomial, NegativeBinomial2, NegativeBinomial3
 from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
@@ -257,7 +258,13 @@ class ARModelT(ProbabilisticFlaxModel):
     @property
     def model(self):
         if self._model is None:
-            self._model = ARModel(n_locations=self._n_locations, output_dim=2, n_hidden=4)
+            self._model = ARModel2(
+                Preprocess(n_locations=self._n_locations, output_dim=2, dropout_rate=0.2),
+                SimpleCell(features=4),
+                SimpleCell(features=4))
+
+
+            #self._model = ARModel(n_locations=self._n_locations, output_dim=2, n_hidden=4)
 
         return self._model
 
