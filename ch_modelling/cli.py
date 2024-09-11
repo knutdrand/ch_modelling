@@ -1,5 +1,6 @@
 """Console script for ch_modelling."""
 from climate_health.datatypes import FullData, remove_field
+from climate_health.external.external_model import get_model_from_directory_or_github_url
 from cyclopts import App
 from climate_health.data import DataSet, datasets
 from .models.flax_models.flax_model import FlaxModel
@@ -34,10 +35,20 @@ def predict(model_filename: str, historic_data_filename: str, future_data_filena
 
 
 @app.command()
-def evaluate(model_name: str, country_name: str = 'vietnam'):
+def evaluate(model_name: str, country_name: str = 'vietnam', against_soa: bool=False):
     model = registry[model_name]()
+    model.prediction_length = 6
     data = datasets.ISIMIP_dengue_harmonized[country_name]
-    evaluate_model(model, data, prediction_length=3, n_test_sets=4, report_filename='test_report_{model_name}.pdf')
+    results, _ = evaluate_model(model, data, prediction_length=6, n_test_sets=7,
+                                report_filename=f'test_report_{model_name}_{country_name}.pdf')
+    if against_soa:
+
+        model_name = 'https://github.com/sandvelab/chap_auto_ewars'
+        soa_model = get_model_from_directory_or_github_url(model_name)
+        soa_results, _ = evaluate_model(soa_model, data, prediction_length=6, n_test_sets=7,
+                                        report_filename=f'test_report_SOA_{country_name}.pdf')
+        print(soa_results)
+    print(results)
 
 
 def main():

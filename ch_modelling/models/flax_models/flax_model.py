@@ -11,6 +11,8 @@ from matplotlib import pyplot as plt
 
 from climate_health.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
 import jax
+
+from .trainer import Trainer
 from ...registry import register_model
 
 from .rnn_model import RNNModel, ARModel
@@ -107,7 +109,9 @@ class FlaxModel:
         assert np.all(~np.isnan(y_pred)), y_pred
         return params
 
+
     def train(self, data: DataSet[ClimateHealthTimeSeries]):
+
         x, y = self._get_series(data)
         self._mu = np.mean(x, axis=(0, 1))
         self._std = np.std(x, axis=(0, 1))
@@ -252,8 +256,21 @@ class ARModelT(ProbabilisticFlaxModel):
     @property
     def model(self):
         if self._model is None:
-            self._model = ARModel(n_locations=self._saved_x.shape[0], output_dim=2)
+            self._model = ARModel(n_locations=self._n_locations, output_dim=2)
         return self._model
+
+    def train(self, data: DataSet[ClimateHealthTimeSeries]):
+        x, y = self._get_series(data)
+        self._n_locations = x.shape[0]
+        self._mu = np.mean(x, axis=(0, 1))
+        self._std = np.std(x, axis=(0, 1))
+        x = (x - self._mu) / self._std
+        ar_y= self._get_ar_y(y)
+        data_loader = [(x, ar_y, y)]
+        trainer = Trainer(self.model, self.n_iter)
+        state = trainer.train(data_loader, self._loss)
+        self._params = state.params
+        return self
 
     def init_params(self, x, y):
         ar_y = self._get_ar_y(y)
@@ -291,15 +308,3 @@ class ARModelT(ProbabilisticFlaxModel):
         return DataSet(
             {key: Samples(time_period, s) for key, s in zip(future_data.keys(), samples)}
         )
-
-    # def _get_series(self, data: DataSet[FullData]):
-    #     x, y = super()._get_series(data)
-    #     ar = y[:, :-1, None]
-    #     x = np.concatenate([x[:, 1:, :], ar], axis=-1)
-    #     return x, y[:, 1:]
-
-
-        #p = jax.nn.sigmoid(eta_pred[..., 1]).ravel()
-
-        #return - NBSkipNaN(k, p).log_prob(y_true.ravel())
-        #return -PoissonSkipNaN(jnp.exp(y_pred.ravel())).log_prob(y_true.ravel())

@@ -8,5 +8,5 @@ def test_flax_model():
     sanity_check_estimator(model)
 
 def test_ar_model():
-    model = ARModelT()
+    model = ARModelT(n_iter=10)
     sanity_check_estimator(model)
