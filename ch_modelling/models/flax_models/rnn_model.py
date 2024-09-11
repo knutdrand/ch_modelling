@@ -60,16 +60,21 @@ class ARModel(nn.Module):
     output_dim: int = 2
     dropout_rate: float = 0.2
     pre_hidden: int = 2
+    n_hidden: int = 4
 
     @nn.compact
     def __call__(self, x, y, training=False):
         x = Preprocess(n_locations=self.n_locations, output_dim=self.pre_hidden, dropout_rate=self.dropout_rate)(x, training=training)
         n_y = y.shape[-1]
         prev_x = jnp.concatenate([y[..., None], x[..., 1:n_y + 1, :]], axis=-1)
-        states = nn.RNN(SimpleCell(features=4))(prev_x)
-        new_states = nn.RNN(SimpleCell(features=4))(x[..., n_y + 1:, :], initial_carry=states[..., -1, :])
+        states = nn.RNN(SimpleCell(features=self.n_hidden))(prev_x)
+        new_states = nn.RNN(SimpleCell(features=self.n_hidden))(x[..., n_y + 1:, :], initial_carry=states[..., -1, :])
         x = jnp.concatenate([states, new_states], axis=1)
         x = nn.Dense(features=6)(x)
         x = nn.relu(x)
         x = nn.Dense(features=self.output_dim)(x)
         return x
+
+class CompositeModel(nn.Module):
+    preprocess: Preprocess
+

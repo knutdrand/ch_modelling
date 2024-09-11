@@ -249,15 +249,16 @@ class ProbabilisticFlaxModel(FlaxModel):
 @register_model
 class ARModelT(ProbabilisticFlaxModel):
     prediction_length = 3
-    n_iter: int = 16000
-
+    n_iter: int = 200
+    context_length = 24
     def loss_func(self, eta_pred, y_true):
         return -self._get_dist(eta_pred).log_prob(y_true[..., 1:]).ravel()
 
     @property
     def model(self):
         if self._model is None:
-            self._model = ARModel(n_locations=self._n_locations, output_dim=2)
+            self._model = ARModel(n_locations=self._n_locations, output_dim=2, n_hidden=4)
+
         return self._model
 
     def train(self, data: DataSet[ClimateHealthTimeSeries]):
@@ -267,7 +268,8 @@ class ARModelT(ProbabilisticFlaxModel):
         self._std = np.std(x, axis=(0, 1))
         x = (x - self._mu) / self._std
         #ar_y= self._get_ar_y(y)
-        data_loader = DataLoader(x, y, self.prediction_length)  # [(x, ar_y, y)]
+
+        data_loader = DataLoader(x, y, self.prediction_length, context_length=min(self.context_length, x.shape[1] - self.prediction_length), do_validation=False)  # [(x, ar_y, y)]
         trainer = Trainer(self.model, self.n_iter)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
@@ -278,7 +280,8 @@ class ARModelT(ProbabilisticFlaxModel):
 
         x, y = self._get_series(future_data)
         prev_values, prev_y = self._get_series(historic_data)
-
+        prev_values = prev_values[:, -self.context_length:]
+        prev_y = prev_y[:, -self.context_length:]
         x = (x - self._mu) / self._std
 
         full_x = jnp.concatenate(
@@ -290,3 +293,10 @@ class ARModelT(ProbabilisticFlaxModel):
         return DataSet(
             {key: Samples(time_period, s) for key, s in zip(future_data.keys(), samples)}
         )
+    def loss_func(self, eta_pred, y_true):
+        return -self._get_dist(eta_pred).log_prob(y_true[..., 1:])
+
+    def _loss(self, y_pred, y_true):
+        L = self.loss_func(y_pred, y_true)
+
+        return jnp.mean(L[:, -self.prediction_length:])/self.context_length+jnp.mean(L[:, -self.prediction_length:])

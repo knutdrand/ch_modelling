@@ -7,7 +7,8 @@ from .models.flax_models.flax_model import FlaxModel
 from .model import CHAPEstimator, CHAPPredictor
 from .registry import registry
 from climate_health.assessment.prediction_evaluator import evaluate_model
-
+import warnings
+warnings.filterwarnings("ignore")
 app = App()
 
 
