@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from climate_health.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
 import jax
 
-from .trainer import Trainer
+from .trainer import Trainer, DataLoader
 from ...registry import register_model
 
 from .rnn_model import RNNModel, ARModel
@@ -245,6 +245,7 @@ class ProbabilisticFlaxModel(FlaxModel):
         #alpha = jax.nn.softplus(eta_pred[..., 1].ravel())
         #return -NBSkipNaN(self._get_mean(eta_pred).ravel(), alpha).log_prob(y_true.ravel())+l2_regularization(params, 10)
 
+
 @register_model
 class ARModelT(ProbabilisticFlaxModel):
     prediction_length = 3
@@ -265,31 +266,12 @@ class ARModelT(ProbabilisticFlaxModel):
         self._mu = np.mean(x, axis=(0, 1))
         self._std = np.std(x, axis=(0, 1))
         x = (x - self._mu) / self._std
-        ar_y= self._get_ar_y(y)
-        data_loader = [(x, ar_y, y)]
+        #ar_y= self._get_ar_y(y)
+        data_loader = DataLoader(x, y, self.prediction_length)  # [(x, ar_y, y)]
         trainer = Trainer(self.model, self.n_iter)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
         return self
-
-    def init_params(self, x, y):
-        ar_y = self._get_ar_y(y)
-        params = self.model.init(self.rng_key, x, ar_y, training=False)
-        y_pred = self.model.apply(params, x, ar_y)
-        assert np.all(np.isfinite(y_pred))
-        assert np.all(~np.isnan(y_pred)), y_pred
-        return params
-
-    def _get_ar_y(self, y):
-        y = interpolate_nans(y)
-        return y[:, :-self.prediction_length]
-
-    def _state_apply(self, state, params, x, y, dropout_train_key=None, training=True):
-        ar_y = self._get_ar_y(y)
-        if training:
-            return state.apply_fn(params, x, ar_y, training=training, rngs={'dropout': dropout_train_key})
-        else:
-            return state.apply_fn(params, x, ar_y, training=training)
 
     def predict(self, historic_data: DataSet, future_data: DataSet, num_samples: int = 100):
         assert list(historic_data.keys()) == list(future_data.keys())
