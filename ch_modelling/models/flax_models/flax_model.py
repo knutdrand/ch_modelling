@@ -13,15 +13,18 @@ from matplotlib import pyplot as plt
 from climate_health.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
 import jax
 
+from .data_loader import MultiDataLoader
+from .multi_country_model import MultiCountryModule
 from .trainer import Trainer, DataLoader
 from ...registry import register_model
 
-from .rnn_model import RNNModel, ARModel, Preprocess, ARModel2
+from .rnn_model import RNNModel, ARModel, Preprocess, ARModel2, model_makers
 from ..jax_models.model_spec import skip_nan_distribution, Poisson, Normal, \
     NegativeBinomial, NegativeBinomial2, NegativeBinomial3
 from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
 
 PoissonSkipNaN = skip_nan_distribution(Poisson)
+
 
 def nan_helper(y):
     return np.isnan(y), lambda z: z.nonzero()[0]
@@ -31,8 +34,12 @@ def interpolate_nans(y):
     y = y.copy()
     for row in y:
         nans, x = nan_helper(row)
-        row[nans] = np.interp(x(nans), x(~nans), row[~nans])
+        if np.all(nans):
+            row[:] = 0
+        else:
+            row[nans] = np.interp(x(nans), x(~nans), row[~nans])
     return y
+
 
 def l2_regularization(params, scale=1.0):
     return sum(jnp.sum(jnp.square(p)) for p in jax.tree_util.tree_leaves(params) if p.ndim == 2) * scale
@@ -48,7 +55,7 @@ class TrainState(train_state.TrainState):
 
 
 class FlaxModel:
-    model: nn.Module#  = RNNModel()
+    model: nn.Module  # = RNNModel()
     n_iter: int = 3000
 
     def __init__(self, rng_key: jax.random.PRNGKey = jax.random.PRNGKey(100), n_iter: int = None):
@@ -110,7 +117,6 @@ class FlaxModel:
         assert np.all(~np.isnan(y_pred)), y_pred
         return params
 
-
     def train(self, data: DataSet[ClimateHealthTimeSeries]):
 
         x, y = self._get_series(data)
@@ -118,8 +124,8 @@ class FlaxModel:
         self._std = np.std(x, axis=(0, 1))
         x = (x - self._mu) / self._std
         self._saved_x = x
-        params = self.init_params(x, y)# self.model.init(self.rng_key, x, training=False)
-        #y_pred = self.model.apply(params, x)
+        params = self.init_params(x, y)  # self.model.init(self.rng_key, x, training=False)
+        # y_pred = self.model.apply(params, x)
 
         dropout_key = jax.random.PRNGKey(40)
 
@@ -136,7 +142,7 @@ class FlaxModel:
 
             def loss_func(params):
                 eta = self._state_apply(state, params, x, y, dropout_train_key, training=True)
-                #eta = state.apply_fn(params, x, training=True, rngs={'dropout': dropout_train_key})
+                # eta = state.apply_fn(params, x, training=True, rngs={'dropout': dropout_train_key})
                 return self._loss(eta, y) + l2_regularization(params, 0.001)
 
             grad_func = jax.value_and_grad(loss_func)
@@ -148,7 +154,7 @@ class FlaxModel:
             state = train_step(state, dropout_key)
             if i % 1000 == 0:
                 eta = self._state_apply(state, state.params, x, y, training=False)
-                #eta = state.apply_fn(state.params, x, training=False)
+                # eta = state.apply_fn(state.params, x, training=False)
                 loss = self._loss(eta, y)
                 print(f"Loss: {loss}")
                 if self._validation_x is not None:
@@ -157,7 +163,7 @@ class FlaxModel:
                     val_loss = self._loss(validation_y, self._validation_y)
                     print(f"Validation Loss: {val_loss}")
                     eta = self._state_apply(state, state.params, x, y, training=False)
-                    #eta = state.apply_fn(state.params, x, training=False)
+                    # eta = state.apply_fn(state.params, x, training=False)
                     mean = self._get_mean(eta)
                     j = 0
                     for series, true in zip(mean, y):
@@ -168,7 +174,6 @@ class FlaxModel:
                         if j > 10:
                             break
                     print(f"Loss: {self._loss(eta, y)}")
-
 
                 # self._losses.append(loss)
             # self._losses.append(loss)
@@ -197,7 +202,6 @@ class FlaxModel:
         print(eta.shape, mu.shape, q95.shape)
         return q95
 
-
     def _get_mean(self, eta):
         return np.exp(eta)
 
@@ -206,8 +210,10 @@ class FlaxModel:
         plt.plot(self._losses)
         plt.show()
 
+
 NormalSkipNaN = skip_nan_distribution(Normal)
 NBSkipNaN = skip_nan_distribution(NegativeBinomial3)
+
 
 @register_model
 class ProbabilisticFlaxModel(FlaxModel):
@@ -228,10 +234,10 @@ class ProbabilisticFlaxModel(FlaxModel):
 
     def _get_mean(self, eta):
         return self._get_dist(eta).mean
-        #return jnp.exp(eta[..., 0])
-        #return jax.nn.softplus(eta[..., 0])
-        #mu = eta[..., 0]
-        #return mu
+        # return jnp.exp(eta[..., 0])
+        # return jax.nn.softplus(eta[..., 0])
+        # mu = eta[..., 0]
+        # return mu
 
     def _get_q(self, eta, q=0.95):
         return self._get_dist(eta).icdf(q)
@@ -243,28 +249,34 @@ class ProbabilisticFlaxModel(FlaxModel):
 
     def loss_func(self, eta_pred, y_true):
         return -self._get_dist(eta_pred).log_prob(y_true).ravel()
-        #alpha = jax.nn.softplus(eta_pred[..., 1].ravel())
-        #return -NBSkipNaN(self._get_mean(eta_pred).ravel(), alpha).log_prob(y_true.ravel())+l2_regularization(params, 10)
+        # alpha = jax.nn.softplus(eta_pred[..., 1].ravel())
+        # return -NBSkipNaN(self._get_mean(eta_pred).ravel(), alpha).log_prob(y_true.ravel())+l2_regularization(params, 10)
 
 
 @register_model
 class ARModelT(ProbabilisticFlaxModel):
+    rnn_model_name = 'base'
     prediction_length = 3
-    n_iter: int = 200
+    n_iter: int = 1000
     context_length = 24
+    do_validation = False
+
     def loss_func(self, eta_pred, y_true):
         return -self._get_dist(eta_pred).log_prob(y_true[..., 1:]).ravel()
+
+    def set_model(self, model):
+        self._model = model
 
     @property
     def model(self):
         if self._model is None:
-            self._model = ARModel2(
-                Preprocess(n_locations=self._n_locations, output_dim=2, dropout_rate=0.2),
-                SimpleCell(features=4),
-                SimpleCell(features=4))
+            self._model = model_makers[self.rnn_model_name](self._n_locations)
+            # self._model = ARModel2(
+            #    Preprocess(n_locations=self._n_locations, output_dim=2, dropout_rate=0.2),
+            #    SimpleCell(features=4),
+            #    SimpleCell(features=4))
 
-
-            #self._model = ARModel(n_locations=self._n_locations, output_dim=2, n_hidden=4)
+            # self._model = ARModel(n_locations=self._n_locations, output_dim=2, n_hidden=4)
 
         return self._model
 
@@ -274,9 +286,9 @@ class ARModelT(ProbabilisticFlaxModel):
         self._mu = np.mean(x, axis=(0, 1))
         self._std = np.std(x, axis=(0, 1))
         x = (x - self._mu) / self._std
-        #ar_y= self._get_ar_y(y)
-
-        data_loader = DataLoader(x, y, self.prediction_length, context_length=min(self.context_length, x.shape[1] - self.prediction_length), do_validation=False)  # [(x, ar_y, y)]
+        data_loader = DataLoader(x, y, self.prediction_length,
+                                 context_length=min(self.context_length, x.shape[1] - self.prediction_length),
+                                 do_validation=self.do_validation)  # [(x, ar_y, y)]
         trainer = Trainer(self.model, self.n_iter)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
@@ -295,15 +307,52 @@ class ARModelT(ProbabilisticFlaxModel):
             [prev_values, x], axis=1)
         eta = self.model.apply(self._params, full_x, interpolate_nans(prev_y))
         n_prev = prev_values.shape[1]
-        samples = self.get_samples(eta[:, n_prev-1:], num_samples)
+        samples = self.get_samples(eta[:, n_prev - 1:], num_samples)
         time_period = next(iter(future_data.values())).time_period
         return DataSet(
             {key: Samples(time_period, s) for key, s in zip(future_data.keys(), samples)}
         )
-    def loss_func(self, eta_pred, y_true):
+
+    def loss_func(self, eta_pred, y_true) -> jnp.ndarray:
         return -self._get_dist(eta_pred).log_prob(y_true[..., 1:])
 
     def _loss(self, y_pred, y_true):
         L = self.loss_func(y_pred, y_true)
 
-        return jnp.mean(L[:, -self.prediction_length:])/self.context_length+jnp.mean(L[:, -self.prediction_length:])
+        return jnp.mean(L[:, -self.prediction_length:]) / self.context_length + jnp.mean(L[:, -self.prediction_length:])
+
+
+@register_model
+class MultiARModelT(ARModelT):
+    rnn_model_name = 'multi_value'
+    n_iter = 2000
+    context_length = 12
+    learning_rate = 1e-4
+
+class MultiCountryModel(ARModelT):
+
+    @property
+    def model(self):
+        if self._model is None:
+            self._model = MultiCountryModule(self._n_locations_list,
+                                             [SimpleCell(features=4) for _ in self._n_locations_list],
+                                             [SimpleCell(features=4) for _ in self._n_locations_list])
+
+        return self._model
+
+    def multi_train(self, data: list[DataSet]):
+        xs, ys = zip(*[self._get_series(d) for d in data])
+        self._n_locations_list = [x.shape[0] for x in xs]
+        self._mus = [np.mean(x, axis=(0, 1)) for x in xs]
+        self._stds = [np.std(x, axis=(0, 1)) for x in xs]
+        xs = [(x - mu) / std for x, mu, std in zip(xs, self._mus, self._stds)]
+        data_loader = MultiDataLoader(xs, ys, self.prediction_length,
+                                      context_length=self.context_length, do_validation=True)
+        trainer = Trainer(self.model, self.n_iter, learning_rate=self.learning_rate)
+        loss_func = lambda preds, trues: sum(jnp.sum(self.loss_func(pred, true)) for pred, true in zip(preds, trues))
+        state = trainer.train(data_loader, loss_func)
+        self._params = state.params
+        return self
+
+    def multi_predict(self, ):
+        ...

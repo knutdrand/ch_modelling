@@ -23,9 +23,10 @@ def l2_regularization(params, scale=1.0):
 #                            jnp.ndarray]]
 
 class Trainer:
-    def __init__(self, model, n_iter=3000):
+    def __init__(self, model, n_iter=3000, learning_rate=1e-5):
         self.model = model
         self.n_iter = n_iter
+        self.learning_rate = learning_rate
 
     def train(self, data_loader: DataLoader, loss_fn):
         ix, iar_y, iy = peekable(iter(data_loader)).peek()
@@ -35,7 +36,7 @@ class Trainer:
         training_state = TrainState.create(
             apply_fn=self.model.apply,
             params=params,
-            tx=optax.adam(1e-3),
+            tx=optax.adam(self.learning_rate),
             key=dropout_key
         )
         if data_loader.do_validation:
