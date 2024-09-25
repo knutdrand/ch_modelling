@@ -7,9 +7,9 @@ from typing import Protocol, Any, Optional, Sequence, Callable
 import numpy as np
 import scipy
 
-from climate_health.datatypes import ClimateHealthTimeSeries, HealthData, SummaryStatistics, ClimateData
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
-from climate_health.time_period.date_util_wrapper import delta_month, TimeDelta, TimePeriod, PeriodRange
+from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, SummaryStatistics, ClimateData
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.time_period.date_util_wrapper import delta_month, TimeDelta, TimePeriod, PeriodRange
 from .hmc import sample
 from .jax import jax, stats, jnp, PRNGKey, expit, logit
 from .regression_model import remove_nans

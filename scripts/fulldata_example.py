@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from climate_health.gluonts_adaptor.dataset import DataSetAdaptor, get_split_dataset
-from climate_health.spatio_temporal_data.multi_country_dataset import MultiCountryDataSet
+from chap_core.gluonts_adaptor.dataset import DataSetAdaptor, get_split_dataset
+from chap_core.spatio_temporal_data.multi_country_dataset import MultiCountryDataSet
 from gluonts.dataset.common import ListDataset
 from gluonts.torch import DeepAREstimator
 from gluonts.torch.distributions import NegativeBinomialOutput

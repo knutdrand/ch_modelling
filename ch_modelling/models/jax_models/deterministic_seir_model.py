@@ -5,12 +5,12 @@ from typing import TypeVar, Generic, Callable
 from bionumpy import bnpdataclass
 from jax.tree_util import register_pytree_node_class
 
-from climate_health.external.models.jax_models.utii import state_or_param, PydanticTree
+from ..jax_models.utii import state_or_param, PydanticTree
 from .jax import jax, jnp
 import numpy as np
 
-from climate_health.external.models.jax_models.model_spec import Poisson, Normal, distributionclass
-from climate_health.external.models.jax_models.protoype_annotated_spec import Positive, Probability
+from ..jax_models.model_spec import Poisson, Normal, distributionclass
+from ..jax_models.protoype_annotated_spec import Positive, Probability
 
 
 @state_or_param

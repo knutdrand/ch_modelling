@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from .hmc import sample as nuts_sample
 from scipy.special import logit
 
-from climate_health.datatypes import ClimateHealthTimeSeries, HealthData, ClimateData
+from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, ClimateData
 
 
 class SimpleSampler:

@@ -1,7 +1,7 @@
 import docker.errors
 import pytest
-from climate_health.docker_helper_functions import create_docker_image, run_command_through_docker_container
-from climate_health.util import docker_available
+from chap_core.docker_helper_functions import create_docker_image, run_command_through_docker_container
+from chap_core.util import docker_available
 
 
 @pytest.mark.skipif(not docker_available(), reason="Docker not available")

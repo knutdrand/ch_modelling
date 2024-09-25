@@ -1,5 +1,5 @@
-from climate_health.external.models.jax_models.model_spec import PoissonSkipNaN
-from climate_health.external.models.jax_models.protoype_annotated_spec import Probability, Rate, Positive
+from chap_core.external.models.jax_models.model_spec import PoissonSkipNaN
+from chap_core.external.models.jax_models.protoype_annotated_spec import Probability, Rate, Positive
 '''
 random variables: should behave exactly like a sample from that distribution
 '''
@@ -54,7 +54,7 @@ T = transformation(S)
 I = PoissonSkipNaN(T*params.observation_rate*population)
 
 
-T[t+1] = MyState(human=Multinomial(T[t].human@params.transition_matrix), mosquito=Multinomial(T[t]@params.transition_matrix)) 
+T[t+1] = MyState(human=Multinomial(T[t].human@params.transition_matrix), mosquito=Multinomial(T[t]@params.transition_matrix))
 
 I = PoissonSkipNaN(T[3]*params.observation_rate*population)
 '''

@@ -10,7 +10,7 @@ from flax.linen import SimpleCell
 from flax.training import train_state
 from matplotlib import pyplot as plt
 
-from climate_health.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
+from chap_core.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
 import jax
 
 from .data_loader import MultiDataLoader
@@ -21,7 +21,7 @@ from ...registry import register_model
 from .rnn_model import RNNModel, ARModel, Preprocess, ARModel2, model_makers
 from ..jax_models.model_spec import skip_nan_distribution, Poisson, Normal, \
     NegativeBinomial, NegativeBinomial2, NegativeBinomial3
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 
 PoissonSkipNaN = skip_nan_distribution(Poisson)
 
@@ -260,7 +260,7 @@ class ARModelT(ProbabilisticFlaxModel):
     n_iter: int = 1000
     context_length = 24
     do_validation = False
-
+    learning_rate = 1e-4
     def loss_func(self, eta_pred, y_true):
         return -self._get_dist(eta_pred).log_prob(y_true[..., 1:]).ravel()
 
@@ -289,7 +289,7 @@ class ARModelT(ProbabilisticFlaxModel):
         data_loader = DataLoader(x, y, self.prediction_length,
                                  context_length=min(self.context_length, x.shape[1] - self.prediction_length),
                                  do_validation=self.do_validation)  # [(x, ar_y, y)]
-        trainer = Trainer(self.model, self.n_iter)
+        trainer = Trainer(self.model, self.n_iter, learning_rate=self.learning_rate)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
         return self
@@ -328,6 +328,7 @@ class MultiARModelT(ARModelT):
     n_iter = 2000
     context_length = 12
     learning_rate = 1e-4
+
 
 class MultiCountryModel(ARModelT):
 

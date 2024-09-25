@@ -6,16 +6,16 @@ import pytest
 import yaml
 from databricks.sdk.service.serving import ExternalModel
 
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
-from climate_health.datatypes import ClimateHealthTimeSeries, FullData
-from climate_health.testing.external_model import sanity_check_external_model
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.datatypes import ClimateHealthTimeSeries, FullData
+from chap_core.testing.external_model import sanity_check_external_model
 
 logging.basicConfig(level=logging.INFO)
-from climate_health.external.external_model import (get_model_from_yaml_file, run_command,
+from chap_core.external.external_model import (get_model_from_yaml_file, run_command,
                                                     ExternalCommandLineModel,
                                                     get_model_from_directory_or_github_url)
 from ..data_fixtures import train_data, train_data_pop, future_climate_data
-from climate_health.util import conda_available, docker_available
+from chap_core.util import conda_available, docker_available
 
 
 @pytest.mark.skipif(not conda_available(), reason='requires conda')

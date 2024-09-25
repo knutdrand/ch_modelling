@@ -1,4 +1,4 @@
-from climate_health.external.models.flax_models.flax_model import FlaxModel
+from ch_modelling.models.flax_models.flax_model import FlaxModel
 from tests.external.util import check_model
 
 

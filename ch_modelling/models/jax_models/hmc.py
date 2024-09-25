@@ -3,7 +3,7 @@ from typing import Any, Optional
 from jax import tree_flatten, tree_leaves, tree_unflatten
 import jax.numpy as jnp
 
-from climate_health.training_control import TrainingControl
+from chap_core.training_control import TrainingControl
 from .jax import jax, blackjax
 import logging
 

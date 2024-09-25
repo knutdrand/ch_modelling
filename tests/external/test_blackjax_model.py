@@ -3,16 +3,16 @@ from functools import partial
 import pandas as pd
 import pytest
 
-from climate_health.assessment.dataset_splitting import train_test_split_with_weather
-from climate_health.assessment.forecast import forecast
-from climate_health.datatypes import ClimateHealthTimeSeries
-from climate_health.external.models.jax_models.model_spec import SSMForecasterNuts, NutsParams
-from climate_health.external.models.jax_models.specs import NaiveSSM, SSMWithoutWeather
-from climate_health.external.models.jax_models.regression_model import RegressionModel, HierarchicalRegressionModel
-from climate_health.external.models.jax_models.simple_ssm import SSM
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
-from climate_health.time_period import Month
-from climate_health.time_period.date_util_wrapper import delta_month, Week
+from chap_core.assessment.dataset_splitting import train_test_split_with_weather
+from chap_core.assessment.forecast import forecast
+from chap_core.datatypes import ClimateHealthTimeSeries
+from chap_core.external.models.jax_models.model_spec import SSMForecasterNuts, NutsParams
+from chap_core.external.models.jax_models.specs import NaiveSSM, SSMWithoutWeather
+from chap_core.external.models.jax_models.regression_model import RegressionModel, HierarchicalRegressionModel
+from chap_core.external.models.jax_models.simple_ssm import SSM
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.time_period import Month
+from chap_core.time_period.date_util_wrapper import delta_month, Week
 
 
 

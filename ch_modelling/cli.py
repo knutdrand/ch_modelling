@@ -1,12 +1,12 @@
 """Console script for ch_modelling."""
-from climate_health.datatypes import FullData, remove_field
-from climate_health.external.external_model import get_model_from_directory_or_github_url
+from chap_core.datatypes import FullData, remove_field
+from chap_core.external.external_model import get_model_from_directory_or_github_url
 from cyclopts import App
-from climate_health.data import DataSet, datasets
+from chap_core.data import DataSet, datasets
 from .models.flax_models.flax_model import FlaxModel, MultiCountryModel
 from .model import CHAPEstimator, CHAPPredictor
 from .registry import registry
-from climate_health.assessment.prediction_evaluator import evaluate_model, evaluate_multi_model
+from chap_core.assessment.prediction_evaluator import evaluate_model, evaluate_multi_model
 import warnings
 warnings.filterwarnings("ignore")
 app = App()

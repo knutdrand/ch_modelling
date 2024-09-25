@@ -6,13 +6,13 @@ import plotly.express as px
 import pytest
 import numpy as np
 
-from climate_health.external.models.jax_models.deterministic_seir_model import SIRParams, Params, SIRState, main_sir, \
+from ..jax_models.deterministic_seir_model import SIRParams, Params, SIRState, main_sir, \
     SIRObserved, transformed_diff_distribution, \
     get_categorical_transform, next_state_dist, ProbabilisticParams, ProbSIRParams
-from climate_health.external.models.jax_models.utii import get_state_transform
-# from climate_health.external.models.jax_models.coin_svgd import CoinSVGD
-from climate_health.external.models.jax_models.hmc import sample
-from climate_health.external.models.jax_models.model_spec import LogNormal
+from chap_core.external.models.jax_models.utii import get_state_transform
+# from chap_core.external.models.jax_models.coin_svgd import CoinSVGD
+from chap_core.external.models.jax_models.hmc import sample
+from chap_core.external.models.jax_models.model_spec import LogNormal
 import plotly
 #plotly.graph_objs.Figure.show = lambda self, *args, **kwargs: None
 

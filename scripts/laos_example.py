@@ -1,7 +1,7 @@
 import warnings
-from climate_health.data.gluonts_adaptor.dataset import get_dataset
-from climate_health.data.datasets import ISIMIP_dengue_harmonized
-from climate_health.data import adaptors
+from chap_core.data.gluonts_adaptor.dataset import get_dataset
+from chap_core.data.datasets import ISIMIP_dengue_harmonized
+from chap_core.data import adaptors
 from gluonts.time_feature import time_features_from_frequency_str
 from gluonts.dataset.common import ListDataset
 from gluonts.dataset.split import split

@@ -2,10 +2,10 @@ import dataclasses
 import json
 from pathlib import Path
 
-from climate_health.data import DataSet
-from climate_health.data.gluonts_adaptor.dataset import DataSetAdaptor
-from climate_health.datatypes import Samples
-from climate_health.time_period import PeriodRange
+from chap_core.data import DataSet
+from chap_core.data.gluonts_adaptor.dataset import DataSetAdaptor
+from chap_core.datatypes import Samples
+from chap_core.time_period import PeriodRange
 from gluonts.dataset.common import ListDataset
 from gluonts.transform import Chain
 from gluonts.model import Estimator, Predictor

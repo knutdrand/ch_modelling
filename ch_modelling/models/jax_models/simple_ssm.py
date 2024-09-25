@@ -4,10 +4,10 @@ from functools import partial
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from climate_health.time_period.date_util_wrapper import TimeDelta, delta_month
+from chap_core.time_period.date_util_wrapper import TimeDelta, delta_month
 from .util import extract_last, extract_sample, array_tree_length
-from climate_health.datatypes import ClimateHealthTimeSeries, ClimateData, HealthData, SummaryStatistics
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.datatypes import ClimateHealthTimeSeries, ClimateData, HealthData, SummaryStatistics
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from .hmc import sample
 from .jax import jax, PRNGKey, stats, jnp
 from .regression_model import remove_nans

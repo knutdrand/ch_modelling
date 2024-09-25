@@ -1,6 +1,6 @@
-from climate_health.assessment.dataset_splitting import train_test_generator
-from climate_health.assessment.prediction_evaluator import evaluate_model
-from climate_health.data import datasets
+from chap_core.assessment.dataset_splitting import train_test_generator
+from chap_core.assessment.prediction_evaluator import evaluate_model
+from chap_core.data import datasets
 import warnings
 
 import flax.linen as nn
@@ -37,7 +37,7 @@ def training():
     train_data, _ = train_test_generator(data, 6, n_test_sets=7)
     estimator = MultiARModelT(n_iter=2000)
     estimator.do_validation = True
-estimator.train(train_data)
+    estimator.train(train_data)
 
 if __name__ == '__main__':
     hyperparameter()

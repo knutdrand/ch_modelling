@@ -1,6 +1,6 @@
 import pytest
-from climate_health.datatypes import Samples
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.datatypes import Samples
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 
 from ch_modelling.cli import train, predict
 from ch_modelling.model import CHAPEstimator

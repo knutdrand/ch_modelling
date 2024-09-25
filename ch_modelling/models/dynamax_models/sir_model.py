@@ -5,8 +5,8 @@ import jax.numpy as jnp
 
 from jaxtyping import Float
 
-from climate_health.external.models.jax_models.model_spec import Normal
-from climate_health.external.models.jax_models.utii import PydanticTree
+from ..jax_models.model_spec import Normal
+from ..jax_models.utii import PydanticTree
 from jax.scipy.special import logsumexp
 
 

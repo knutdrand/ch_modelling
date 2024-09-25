@@ -3,10 +3,10 @@ from typing import Optional
 
 import numpy as np
 
-from climate_health._legacy_dataset import ClimateData
-from climate_health.datatypes import HealthData
+from chap_core._legacy_dataset import ClimateData
+from chap_core.datatypes import HealthData
 from .hmc import sample
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from .jax import jax, PRNGKey, stats, jnp
 
 

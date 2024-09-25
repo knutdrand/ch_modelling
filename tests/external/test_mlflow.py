@@ -1,6 +1,6 @@
 import pytest
 from ..data_fixtures import full_data, train_data, train_data_pop, future_climate_data
-from climate_health.external.mlflow import ExternalModel, MlFlowTrainPredictRunner
+from chap_core.external.mlflow import ExternalModel, MlFlowTrainPredictRunner
 
 
 def test_mlflow_model_train(models_path, train_data_pop, future_climate_data):

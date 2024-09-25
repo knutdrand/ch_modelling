@@ -5,21 +5,21 @@ from functools import partial
 from typing import Any, Optional, Callable
 import numpy as np
 
-from climate_health.time_period.date_util_wrapper import delta_month
-from climate_health.training_control import PrintingTrainingControl
+from chap_core.time_period.date_util_wrapper import delta_month
+from chap_core.training_control import PrintingTrainingControl
 from .deterministic_seir_model import MarkovChain
 from .hmc import sample
 from .jax import jax, PRNGKey, jnp, expit, logit
 from bionumpy.bnpdataclass import BNPDataClass, bnpdataclass
 
-from climate_health.datatypes import ClimateHealthTimeSeries, HealthData, ClimateData, FullData, SummaryStatistics
-from climate_health.external.models.jax_models.prototype_hierarchical import hierarchical_linear_regression, \
+from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, ClimateData, FullData, SummaryStatistics
+from chap_core.external.models.jax_models.prototype_hierarchical import hierarchical_linear_regression, \
     GlobalSeasonalParams, DistrictParams, seasonal_linear_regression, get_hierarchy_logprob_func, \
     join_global_and_district, hierarchical, HierarchyLogProbFunc, HiearchicalLogProbFuncWithStates, \
     HiearchicalLogProbFuncWithDistrictStates
-from climate_health.external.models.jax_models.utii import get_state_transform, state_or_param, tree_sample, index_tree, \
+from chap_core.external.models.jax_models.utii import get_state_transform, state_or_param, tree_sample, index_tree, \
     PydanticTree
-from climate_health.spatio_temporal_data.temporal_dataclass import DataSet
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from .model_spec import Poisson, PoissonSkipNaN, Normal, distributionclass
 from .protoype_annotated_spec import Positive
 from .simple_ssm import get_summary
@@ -232,7 +232,7 @@ class GlobalParams2(GlobalSeasonalParams):
     state_params: RegressionStateParams = RegressionStateParams(0., 0.1, 0.1)  # , sigma)
     district_state_params: RegressionStateParams = RegressionStateParams(0., 0.1, 0.1)  # , sigma)
 
-    
+
 class HierarchicalStateModel(HierarchicalModel):
     _log_prog_func_class = HiearchicalLogProbFuncWithStates
     _param_class = GlobalParams

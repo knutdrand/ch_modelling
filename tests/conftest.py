@@ -1,6 +1,6 @@
 import pytest
-from climate_health.assessment.dataset_splitting import train_test_split
-from climate_health.data.datasets import ISIMIP_dengue_harmonized
+from chap_core.assessment.dataset_splitting import train_test_split
+from chap_core.data.datasets import ISIMIP_dengue_harmonized
 
 
 @pytest.fixture

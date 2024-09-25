@@ -48,6 +48,16 @@ class DataLoader:
                 self._y[:, self._validation_index:self._validation_index + self._total_length])
 
 
+class Batcher(DataLoader):
+    def __iter__(self):
+        starts = np.arange(self._X.shape[1] - self._total_length + 1)[self.validation_mask]
+        permuted_starts = np.random.permutation(starts)
+        for idx in range(0, len(permuted_starts), 13):
+            starts = permuted_starts[idx:idx + 13]
+            yield self._X[:, start:start + self._total_length], \
+                  self._y[:, start:start + self._total_length]
+
+
 class MultiDataLoader:
     def __init__(self, Xs: list[jnp.ndarray], ys: list[jnp.ndarray], *args, **kwargs):
         self._dataloaders = [DataLoader(X, y, *args, **kwargs) for X, y in zip(Xs, ys)]

@@ -1,10 +1,10 @@
-from climate_health.assessment.dataset_splitting import train_test_split
-from climate_health.data.datasets import ISIMIP_dengue_harmonized
-from climate_health.data import DataSet
-from climate_health.adaptors.gluonts import GluonTSEstimator
+from chap_core.assessment.dataset_splitting import train_test_split
+from chap_core.data.datasets import ISIMIP_dengue_harmonized
+from chap_core.data import DataSet
+from chap_core.adaptors.gluonts import GluonTSEstimator
 from ch_modelling.estimators import get_deepar_estimator
 from ch_modelling.model import CHAPEstimator
-from climate_health.assessment.prediction_evaluator import evaluate_model
+from chap_core.assessment.prediction_evaluator import evaluate_model
 import pytest
 
 

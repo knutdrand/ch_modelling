@@ -1,5 +1,5 @@
-from climate_health.data.datasets import ISIMIP_dengue_harmonized
-from climate_health.testing.estimators import sanity_check_estimator
+from chap_core.data.datasets import ISIMIP_dengue_harmonized
+from chap_core.testing.estimators import sanity_check_estimator
 
 from ch_modelling.models.flax_models.flax_model import FlaxModel, ProbabilisticFlaxModel, ARModelT, MultiCountryModel
 

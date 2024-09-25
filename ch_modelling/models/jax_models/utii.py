@@ -2,8 +2,8 @@ import dataclasses
 
 import numpy as np
 
-from climate_health.external.models.jax_models.model_spec import Normal, LogNormal
-from climate_health.external.models.jax_models.protoype_annotated_spec import Positive
+from chap_core.external.models.jax_models.model_spec import Normal, LogNormal
+from chap_core.external.models.jax_models.protoype_annotated_spec import Positive
 from .jax import jnp, jax, tree_util
 
 state_or_param = lambda f: tree_util.register_pytree_node_class(dataclasses.dataclass(f, frozen=True))
