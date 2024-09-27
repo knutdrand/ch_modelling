@@ -13,11 +13,11 @@ from .jax import jax, PRNGKey, jnp, expit, logit
 from bionumpy.bnpdataclass import BNPDataClass, bnpdataclass
 
 from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, ClimateData, FullData, SummaryStatistics
-from chap_core.external.models.jax_models.prototype_hierarchical import hierarchical_linear_regression, \
+from ..models.jax_models.prototype_hierarchical import hierarchical_linear_regression, \
     GlobalSeasonalParams, DistrictParams, seasonal_linear_regression, get_hierarchy_logprob_func, \
     join_global_and_district, hierarchical, HierarchyLogProbFunc, HiearchicalLogProbFuncWithStates, \
     HiearchicalLogProbFuncWithDistrictStates
-from chap_core.external.models.jax_models.utii import get_state_transform, state_or_param, tree_sample, index_tree, \
+from ..models.jax_models.utii import get_state_transform, state_or_param, tree_sample, index_tree, \
     PydanticTree
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from .model_spec import Poisson, PoissonSkipNaN, Normal, distributionclass

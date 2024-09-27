@@ -1,7 +1,7 @@
 from annotated_types import Interval
 from typing import Annotated, Protocol, TypeVar, Sequence, Any
 
-from chap_core.external.models.jax_models.prototype_distributions import IsDistribution
+from ch_modelling.models.jax_models.prototype_distributions import IsDistribution
 
 Probability = Annotated[float, Interval(ge=0, le=1)]
 Positive = Annotated[float, Interval(gt=0)]

@@ -5,11 +5,11 @@ import numpy as np
 import pytest
 from bionumpy.bnpdataclass import bnpdataclass
 
-from chap_core.external.models.jax_models.hmc import sample
-from chap_core.external.models.jax_models.prototype_hierarchical import linear_regression, Observations, \
+from ch_modelling.models.jax_models.hmc import sample
+from ch_modelling.models.jax_models.prototype_hierarchical import linear_regression, Observations, \
     GlobalParams, get_logprob_func, DistrictParams, hierarchical_linear_regression, get_hierarchy_logprob_func, \
     GlobalSeasonalParams, SeasonalObservations, seasonal_linear_regression
-from chap_core.external.models.jax_models.utii import get_state_transform, index_tree, tree_sample
+from ch_modelling.models.jax_models.utii import get_state_transform, index_tree, tree_sample
 from tests.external.test_deterministic_seir_model import trace_plot
 
 location_names = ['A', 'B', 'C']

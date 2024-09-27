@@ -2,9 +2,9 @@ import pytest
 from blackjax.diagnostics import effective_sample_size, potential_scale_reduction
 from jax import tree_leaves
 
-from chap_core.external.models.jax_models.jax import jax
-from chap_core.external.models.jax_models.hmc import sample, multichain_sample
-from chap_core.external.models.jax_models.utii import state_or_param, PydanticTree
+from ch_modelling.models.jax_models.jax import jax
+from ch_modelling.models.jax_models.hmc import sample, multichain_sample
+from ch_modelling.models.jax_models.utii import state_or_param, PydanticTree
 from chap_core.training_control import TrainingControl, PrintingTrainingControl
 
 

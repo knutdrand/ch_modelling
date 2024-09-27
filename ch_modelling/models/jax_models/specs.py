@@ -1,9 +1,9 @@
 from typing import Any
 
-from chap_core.external.models.jax_models.jax import jnp
-from chap_core.external.models.jax_models.model_spec import IsDistribution, Poisson, expit, DictDist, Normal, \
+from ch_modelling.models.jax_models.jax import jnp
+from ch_modelling.models.jax_models.model_spec import IsDistribution, Poisson, expit, DictDist, Normal, \
     SSMForecasterNuts, NutsParams, PoissonSkipNaN
-from chap_core.external.models.jax_models.simple_ssm import NaiveSSM
+from ch_modelling.models.jax_models.simple_ssm import NaiveSSM
 
 
 class SSMWithoutWeather:

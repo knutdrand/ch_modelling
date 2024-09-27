@@ -1,6 +1,6 @@
 from typing import Protocol, TypeVar, Any, Sequence
 
-from chap_core.external.models.jax_models.prototype_distributions import ParameterType, ValueType
+from ch_modelling.models.jax_models.prototype_distributions import ParameterType, ValueType
 
 StateType = TypeVar('StateType')
 InputType = TypeVar('InputType')

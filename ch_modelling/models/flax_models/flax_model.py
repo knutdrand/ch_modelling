@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from chap_core.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
 import jax
 
-from .data_loader import MultiDataLoader
+from .data_loader import MultiDataLoader, Batcher
 from .multi_country_model import MultiCountryModule
 from .trainer import Trainer, DataLoader
 from ...registry import register_model
@@ -261,6 +261,7 @@ class ARModelT(ProbabilisticFlaxModel):
     context_length = 24
     do_validation = False
     learning_rate = 1e-4
+
     def loss_func(self, eta_pred, y_true):
         return -self._get_dist(eta_pred).log_prob(y_true[..., 1:]).ravel()
 
@@ -280,19 +281,34 @@ class ARModelT(ProbabilisticFlaxModel):
 
         return self._model
 
+    def _get_dataset(self, data: DataSet[FullData]):
+        x, y = self._get_series(data)
+        return DataSet(x, y, prediction_length=self.prediction_length, context_length=self.context_length)
+
     def train(self, data: DataSet[ClimateHealthTimeSeries]):
         x, y = self._get_series(data)
         self._n_locations = x.shape[0]
         self._mu = np.mean(x, axis=(0, 1))
         self._std = np.std(x, axis=(0, 1))
         x = (x - self._mu) / self._std
-        data_loader = DataLoader(x, y, self.prediction_length,
-                                 context_length=min(self.context_length, x.shape[1] - self.prediction_length),
-                                 do_validation=self.do_validation)  # [(x, ar_y, y)]
-        trainer = Trainer(self.model, self.n_iter, learning_rate=self.learning_rate)
+        context_length = min(self.context_length, x.shape[1] - self.prediction_length)
+        data_loader = self._get_data_loader(context_length, x, y)
+        validation_loader = None
+        if self._validation_x is not None:
+            validation_loader = DataLoader((self._validation_x - self._mu) / self._std, self._validation_y,
+                                           self.prediction_length,
+                                           context_length=context_length)
+        trainer = Trainer(self.model, self.n_iter, learning_rate=self.learning_rate,
+                          validation_loader=validation_loader)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
         return self
+
+    def _get_data_loader(self, context_length, x, y):
+        data_loader = DataLoader(x, y, self.prediction_length,
+                                 context_length=context_length,
+                                 do_validation=self.do_validation)  # [(x, ar_y, y)]
+        return data_loader
 
     def predict(self, historic_data: DataSet, future_data: DataSet, num_samples: int = 100):
         assert list(historic_data.keys()) == list(future_data.keys())
@@ -301,10 +317,10 @@ class ARModelT(ProbabilisticFlaxModel):
         prev_values, prev_y = self._get_series(historic_data)
         prev_values = prev_values[:, -self.context_length:]
         prev_y = prev_y[:, -self.context_length:]
-        x = (x - self._mu) / self._std
 
         full_x = jnp.concatenate(
             [prev_values, x], axis=1)
+        full_x = (full_x - self._mu) / self._std
         eta = self.model.apply(self._params, full_x, interpolate_nans(prev_y))
         n_prev = prev_values.shape[1]
         samples = self.get_samples(eta[:, n_prev - 1:], num_samples)
@@ -320,6 +336,17 @@ class ARModelT(ProbabilisticFlaxModel):
         L = self.loss_func(y_pred, y_true)
 
         return jnp.mean(L[:, -self.prediction_length:]) / self.context_length + jnp.mean(L[:, -self.prediction_length:])
+
+
+class BatchedARModelT(ARModelT):
+    batch_size = 13
+
+    def _get_data_loader(self, context_length, x, y):
+        batcher = Batcher(x, y, self.prediction_length,
+                          context_length=context_length,
+                          do_validation=self.do_validation)
+        batcher.batch_size = self.batch_size
+        return batcher
 
 
 @register_model

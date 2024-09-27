@@ -9,10 +9,9 @@ import numpy as np
 from ..jax_models.deterministic_seir_model import SIRParams, Params, SIRState, main_sir, \
     SIRObserved, transformed_diff_distribution, \
     get_categorical_transform, next_state_dist, ProbabilisticParams, ProbSIRParams
-from chap_core.external.models.jax_models.utii import get_state_transform
-# from chap_core.external.models.jax_models.coin_svgd import CoinSVGD
-from chap_core.external.models.jax_models.hmc import sample
-from chap_core.external.models.jax_models.model_spec import LogNormal
+from ch_modelling.models.jax_models.utii import get_state_transform
+from ch_modelling.models.jax_models.hmc import sample
+from ch_modelling.models.jax_models.model_spec import LogNormal
 import plotly
 #plotly.graph_objs.Figure.show = lambda self, *args, **kwargs: None
 

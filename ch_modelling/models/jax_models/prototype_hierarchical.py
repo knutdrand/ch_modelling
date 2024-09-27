@@ -6,9 +6,9 @@ from .jax import expit, logit
 import numpy as np
 from bionumpy.bnpdataclass import bnpdataclass
 
-from chap_core.external.models.jax_models.model_spec import Normal, IsDistribution
-from chap_core.external.models.jax_models.protoype_annotated_spec import Positive
-from chap_core.external.models.jax_models.utii import state_or_param, PydanticTree, get_state_transform
+from ch_modelling.models.jax_models.model_spec import Normal, IsDistribution
+from ch_modelling.models.jax_models.protoype_annotated_spec import Positive
+from ch_modelling.models.jax_models.utii import state_or_param, PydanticTree, get_state_transform
 
 hierarchical = lambda name: state_or_param
 

@@ -1,5 +1,5 @@
-from chap_core.external.models.jax_models.model_spec import PoissonSkipNaN
-from chap_core.external.models.jax_models.protoype_annotated_spec import Probability, Rate, Positive
+from ch_modelling.models.jax_models.model_spec import PoissonSkipNaN
+from ch_modelling.models.jax_models.protoype_annotated_spec import Probability, Rate, Positive
 '''
 random variables: should behave exactly like a sample from that distribution
 '''

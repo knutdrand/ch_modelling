@@ -4,6 +4,9 @@ import numpy as np
 from flax.linen import SimpleCell
 
 
+# Dimensions
+# batch_dim x location_dim x time_dim x feature_dim
+
 class MLP(nn.Module):
     hidden_dims: list[int]
     output_dim: int = 1
@@ -27,7 +30,10 @@ class Preprocess(nn.Module):
     def __call__(self, x, training=False):
         loc = nn.Embed(num_embeddings=self.n_locations, features=self.embedding_dim)(
             jnp.arange(self.n_locations))
-        loc = jnp.repeat(loc[:, None, :], x.shape[1], axis=1)
+        axis = -2
+        loc = jnp.repeat(loc[..., None, :], x.shape[axis], axis=axis)
+        if x.ndim == 4:
+            loc = jnp.repeat(loc[None, ...], x.shape[0], axis=0)
         x = jnp.concatenate([x, loc], axis=-1)  # batch x embedding_dim
         layers = [self.n_hidden]
         for i in range(len(layers)):
@@ -49,8 +55,7 @@ class RNNModel(nn.Module):
     def __call__(self, x, training=False):
         dropout_rate = 0.2
         loc = nn.Embed(num_embeddings=self.n_locations, features=self.embedding_dim)(jnp.arange(self.n_locations))
-        print(loc)
-        loc = jnp.repeat(loc[:, None, :], x.shape[1], axis=1)
+        loc = jnp.repeat(loc[..., None, :], x.shape[1], axis=1)
         x = jnp.concatenate([x, loc], axis=-1)  # batch x embedding_dim
         layers = [4]
         for i in range(len(layers)):
@@ -124,7 +129,7 @@ class ARModel2(nn.Module):
         prev_x = self.ar_adder(x, y)
         states = nn.RNN(self.cell_pre)(prev_x)
         new_states = nn.RNN(self.cell_post)(x[..., n_y + 1:, :], initial_carry=states[..., -1, :])
-        x = jnp.concatenate([states, new_states], axis=1)
+        x = jnp.concatenate([states, new_states], axis=-2)
         x = nn.Dense(features=6)(x)
         x = nn.relu(x)
         x = nn.Dense(features=self.output_dim)(x)

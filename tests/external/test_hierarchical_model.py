@@ -3,14 +3,14 @@ import numpy as np
 import pytest
 import pandas as pd
 from chap_core.datatypes import FullData, HealthData
-from chap_core.external.models.jax_models.hierarchical_model import HierarchicalModel, SeasonalClimateHealthData, \
+from ch_modelling.models.jax_models.hierarchical_model import HierarchicalModel, SeasonalClimateHealthData, \
     create_seasonal_data, HierarchicalStateModelD2
-from chap_core.external.models.jax_models.model_spec import PoissonSkipNaN
-from chap_core.external.models.jax_models.prototype_hierarchical import GlobalSeasonalParams, \
+from ch_modelling.models.jax_models.model_spec import PoissonSkipNaN
+from ch_modelling.models.jax_models.prototype_hierarchical import GlobalSeasonalParams, \
     get_hierarchy_logprob_func, DistrictParams
-from chap_core.external.models.jax_models.protoype_annotated_spec import Positive
-from chap_core.external.models.jax_models.utii import state_or_param, get_state_transform
-from chap_core.external.models.jax_models.jax import jnp
+from ch_modelling.models.jax_models.protoype_annotated_spec import Positive
+from ch_modelling.models.jax_models.utii import state_or_param, get_state_transform
+from ch_modelling.models.jax_models.jax import jnp
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from tests.external.util import check_model
 

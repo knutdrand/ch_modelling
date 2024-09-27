@@ -17,6 +17,34 @@ def interpolate_nans(y):
     return y
 
 
+class DataSet:
+    def __init__(self, X, y, forecast_length, context_length=None):
+        self._X = X
+        self._y = y
+        self._context_length = context_length or X.shape[1] - forecast_length
+        self._forecast_length = forecast_length
+        self._total_length = self._context_length + forecast_length
+        self._interpolated_y = interpolate_nans(y)
+
+    def __len__(self):
+        return self.X.shape[1] - self._total_length + 1
+
+    def __getitem__(self, item):
+        start = item
+        return (self._X[:, start:start + self._total_length],
+                self._interpolated_y[:, start:start + self._context_length],
+                self._y[:, start:start + self._total_length])
+
+
+class SimpleDataLoader:
+    def __init__(self, dataset: DataSet):
+        self.dataset = dataset
+
+    def __iter__(self):
+        for i in range(len(self.dataset)):
+            yield self.dataset[i]
+
+
 class DataLoader:
     def __init__(self, X, y, forecast_length, context_length=None, do_validation=False):
         self._X = X  # n_locations, n_periods, n_features
@@ -37,7 +65,7 @@ class DataLoader:
 
     def __iter__(self) -> Iterable[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         starts = np.arange(self._X.shape[1] - self._total_length + 1)[self.validation_mask]
-        permuted_starts = np.random.permutation(starts)
+        permuted_starts = np.random.permutation(starts) if False else starts
         return ((self._X[:, start:start + self._total_length],
                  self._interpolated_y[:, start:start + self._context_length],
                  self._y[:, start:start + self._total_length]) for start in permuted_starts)
@@ -49,13 +77,20 @@ class DataLoader:
 
 
 class Batcher(DataLoader):
+    batch_size: int = 13
+
     def __iter__(self):
         starts = np.arange(self._X.shape[1] - self._total_length + 1)[self.validation_mask]
-        permuted_starts = np.random.permutation(starts)
-        for idx in range(0, len(permuted_starts), 13):
-            starts = permuted_starts[idx:idx + 13]
-            yield self._X[:, start:start + self._total_length], \
-                  self._y[:, start:start + self._total_length]
+        # permuted_starts = np.random.permutation(starts)
+        permuted_starts = starts
+        for idx in range(0, len(permuted_starts), self.batch_size):
+            starts = permuted_starts[idx:idx + self.batch_size]
+            x = np.array([self._X[:, start:start + self._total_length] for start in starts])
+            y_i = np.array([self._interpolated_y[:, start:start + self._context_length] for start in starts])
+            y = np.array([self._y[:, start:start + self._total_length] for start in starts])
+            yield x, y_i, y
+            # yield self._X[:, start:start + self._total_length], \
+            #      self._y[:, start:start + self._total_length]
 
 
 class MultiDataLoader:
