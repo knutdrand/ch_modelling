@@ -9,6 +9,12 @@ def test_flax_model():
     sanity_check_estimator(model)
 
 
+def test_v1_model():
+    from ch_modelling.models.flax_models.flax_model_v1 import ARModelTV1
+    model = ARModelTV1(n_iter=10)
+    sanity_check_estimator(model)
+
+
 def test_ar_model():
     model = ARModelT(n_iter=10)
     sanity_check_estimator(model)
@@ -17,7 +23,6 @@ def test_ar_model():
 def sanity_check_multiestimator(estimator):
     prediction_length = 3
     dataset = [ISIMIP_dengue_harmonized['vietnam'], ISIMIP_dengue_harmonized['brazil']]
-    #train, test_generator = train_test_generator(dataset, prediction_length, n_test_sets=1)
     estimator.multi_train(dataset)
 
 

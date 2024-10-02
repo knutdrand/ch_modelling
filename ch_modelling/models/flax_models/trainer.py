@@ -40,8 +40,8 @@ class Trainer:
             tx=optax.adam(self.learning_rate),
             key=dropout_key
         )
-        if data_loader.do_validation:
-            v_x, v_ar, v_y = data_loader.validation_set()
+        #if data_loader.do_validation:
+        #    v_x, v_ar, v_y = data_loader.validation_set()
 
         @jax.jit
         def train_step(state: TrainState, dropout_key, x, ar_y, y) -> Tuple[TrainState, jnp.ndarray]:
@@ -55,6 +55,9 @@ class Trainer:
             loss, grad = grad_func(state.params)
             state = state.apply_gradients(grads=grad)
             return state, loss
+        @jax.jit
+        def get_validation_loss(state: TrainState, x, ar_y, y):
+            return loss_fn(state.apply_fn(state.params, x, ar_y, training=False), y)
 
         for i in range(self.n_iter):
             total_loss = 0
@@ -67,8 +70,7 @@ class Trainer:
                 if self._validation_loader is not None:
                     v_loss = 0
                     for v_x, v_ar, v_y in iter(self._validation_loader):
-                        v_loss += loss_fn(training_state.apply_fn(training_state.params, v_x, v_ar, training=False),
-                                          v_y)
+                        v_loss += get_validation_loss(training_state, v_x, v_ar, v_y)
                     validation_loss = v_loss
                     #validation_loss = loss_fn(training_state.apply_fn(training_state.params, v_x, v_ar, training=False),
                     #v_y)
