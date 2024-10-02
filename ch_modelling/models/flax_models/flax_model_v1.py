@@ -14,7 +14,8 @@ from ch_modelling.models.flax_models.rnn_model import model_makers
 from ch_modelling.models.flax_models.trainer import Trainer
 import jax.numpy as jnp
 
-from ch_modelling.models.flax_models.transforms import get_feature_normalizer, t_chain, get_series
+from ch_modelling.models.flax_models.transforms import get_feature_normalizer, t_chain, get_series, ZScaler
+
 
 class FlaxPredictor:
     distribution_head: type[DistributionHead] = NBHead
@@ -23,7 +24,7 @@ class FlaxPredictor:
         self.rng_key, sample_key = jax.random.split(self.rng_key)
         return self.distribution_head(eta).sample(sample_key, (n_samples,))
 
-    def __init__(self, params, model, transform, prediction_length, context_length):
+    def __init__(self, params, transform, model, prediction_length, context_length):
         self.model = model
         self._params = params
         self._transform = transform
@@ -41,8 +42,8 @@ class FlaxPredictor:
         dataset = DLDataSet(full_x, prev_y, forecast_length=self.prediction_length, context_length=self.context_length)
         dataset.set_transform(self._transform)
         x, y = dataset.prediction_instance()
-        #full_x, iy = self._transform((full_x, interpolate_nans(prev_y)))
-        eta = self.model.apply(self._params, x, y)# full_x, iy)
+        # full_x, iy = self._transform((full_x, interpolate_nans(prev_y)))
+        eta = self.model.apply(self._params, x, y)  # full_x, iy)
         n_prev = prev_values.shape[1]
         samples = self.get_samples(
             eta[:, n_prev - 1:], num_samples)
@@ -53,13 +54,13 @@ class FlaxPredictor:
 
     def save(self, path):
         with open(path, 'wb') as f:
-            pickle.dump(self._params, f)
+            pickle.dump((self._params, self._transform), f)
 
     @classmethod
     def load(cls, path, *args, **kwargs):
         with open(path, 'rb') as f:
-            params = pickle.load(f)
-        return cls(params, *args, **kwargs)
+            params, transform = pickle.load(f)
+        return cls(params, transform, *args, **kwargs)
 
 
 class ARModelTV1(ProbabilisticFlaxModel):
@@ -86,18 +87,20 @@ class ARModelTV1(ProbabilisticFlaxModel):
         return DLDataSet(x, y, forecast_length=self.prediction_length, context_length=self.context_length)
 
     def set_validation_data(self, historic_data: DataSet[FullData], future_data: DataSet[FullData]):
-        x,y = get_series(historic_data)
+        x, y = get_series(historic_data)
         x = x[:, -self.context_length:]
         y = y[:, -self.context_length:]
         fx, fy = get_series(future_data)
         full_x = np.concatenate([x, fx], axis=1)
         full_y = np.concatenate([y, fy], axis=1)
-        self._validation_loader = SimpleDataLoader(DLDataSet(full_x, full_y, forecast_length=self.prediction_length, context_length=self.context_length))
+        self._validation_loader = SimpleDataLoader(
+            DLDataSet(full_x, full_y, forecast_length=self.prediction_length, context_length=self.context_length))
 
     def train(self, data: DataSet[FullData]):
         data_set = self._get_dataset(data)
         normalizers = tuple(get_feature_normalizer(data_set, i) for i in range(1))
-        self._transform = t_chain(normalizers)
+        self._transform = ZScaler.from_data(data_set)#get_feature_normalizer(data_set, 0)
+        #self._transform = t_chain(normalizers)
         data_set.set_transform(self._transform)
         self._n_locations = len(data.keys())
         data_loader = SimpleDataLoader(data_set)
@@ -106,10 +109,10 @@ class ARModelTV1(ProbabilisticFlaxModel):
                           validation_loader=self._validation_loader)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
-        return FlaxPredictor(self._params, self.model, self._transform, self.prediction_length, self.context_length)
+        return FlaxPredictor(self._params, self._transform, self.model, self.prediction_length, self.context_length)
 
     def load_predictor(self, path):
-        return FlaxPredictor.load(path, self.model, self._transform, self.prediction_length, self.context_length)
+        return FlaxPredictor.load(path, self.model, self.prediction_length, self.context_length)
 
     def predict(self, historic_data: DataSet, future_data: DataSet, num_samples: int = 100):
         assert list(historic_data.keys()) == list(future_data.keys())
@@ -121,8 +124,8 @@ class ARModelTV1(ProbabilisticFlaxModel):
         dataset = DLDataSet(full_x, prev_y, forecast_length=self.prediction_length, context_length=self.context_length)
         dataset.set_transform(self._transform)
         x, y = dataset.prediction_instance()
-        #full_x, iy = self._transform((full_x, interpolate_nans(prev_y)))
-        eta = self.model.apply(self._params, x, y)# full_x, iy)
+        # full_x, iy = self._transform((full_x, interpolate_nans(prev_y)))
+        eta = self.model.apply(self._params, x, y)  # full_x, iy)
         n_prev = prev_values.shape[1]
         samples = self.get_samples(
             eta[:, n_prev - 1:], num_samples)
@@ -141,4 +144,4 @@ class ARModelTV1(ProbabilisticFlaxModel):
     def get_samples(self, eta, n_samples):
         self.rng_key, sample_key = jax.random.split(self.rng_key)
         return self.distribution_head(eta).sample(sample_key, (n_samples,))
-        #return self._get_dist(eta).sample(eta, (n_samples,))
+        # return self._get_dist(eta).sample(eta, (n_samples,))

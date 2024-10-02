@@ -11,7 +11,10 @@ from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, SummaryStat
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from chap_core.time_period.date_util_wrapper import delta_month, TimeDelta, TimePeriod, PeriodRange
 from .hmc import sample
-from .jax import jax, stats, jnp, PRNGKey, expit, logit
+from jax.scipy import stats
+from jax.random import PRNGKey
+import jax.numpy as jnp
+import jax
 from .regression_model import remove_nans
 from .simple_ssm import get_summary
 from .util import extract_last, index_tree, array_tree_length, extract_sample

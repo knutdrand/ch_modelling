@@ -1,9 +1,10 @@
+import dataclasses
 from datetime import datetime
 
 import numpy as np
 from chap_core.datatypes import FullData
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
-
+import flax.linen as nn
 
 def get_series(data: DataSet[FullData]):
     x = []
@@ -29,12 +30,26 @@ def get_feature_normalizer(data_set, i=0):
     std = np.std(x, axis=(0, 1))
     return lambda x: x[:i] + ((x[i] - mu) / std,) + x[i + 1:]
 
+@dataclasses.dataclass
+class ZScaler:
+    mu: np.ndarray
+    std: np.ndarray
+
+    def __call__(self, x):
+        i = 0
+        return x[:i] + ((x[i] - self.mu) / self.std,) + x[i + 1:]
+
+    @classmethod
+    def from_data(cls, data_set):
+        return ZScaler(np.mean(data_set.predictors(0), axis=(0, 1)), np.std(data_set.predictors(0), axis=(0, 1)))
+
 class DataDependentTransform:
     def __init__(self, data_set):
         self.data_set = data_set
 
     def __call__(self, x) -> tuple:
         ...
+
 
 class DataDependentNormalizer:
     def __init__(self, data_set):
