@@ -25,16 +25,24 @@ class DataSet:
         self._forecast_length = forecast_length
         self._total_length = self._context_length + forecast_length
         self._interpolated_y = interpolate_nans(y)
+        self._transform = lambda x: x
+
+    def set_transform(self, transform):
+        self._transform = transform
+
+    def predictors(self, i):
+        return (self._X, self._interpolated_y, self._y)[i]
 
     def __len__(self):
-        return self.X.shape[1] - self._total_length + 1
+        return self._X.shape[1] - self._total_length + 1
 
     def __getitem__(self, item):
         start = item
-        return (self._X[:, start:start + self._total_length],
-                self._interpolated_y[:, start:start + self._context_length],
-                self._y[:, start:start + self._total_length])
+        return self._transform((self._X[:, start:start + self._total_length],
+                                self._interpolated_y[:, start:start + self._context_length])) + (self._y[:, start:start + self._total_length],)
 
+    def prediction_instance(self):
+        return self._transform((self._X[:, -self._total_length:], self._interpolated_y[:, -self._context_length:]))
 
 class SimpleDataLoader:
     def __init__(self, dataset: DataSet):

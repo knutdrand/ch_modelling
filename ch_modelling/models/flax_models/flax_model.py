@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import numpy as np
 import scipy
 from flax import linen as nn
@@ -10,17 +8,18 @@ from flax.linen import SimpleCell
 from flax.training import train_state
 from matplotlib import pyplot as plt
 
-from chap_core.datatypes import ClimateHealthTimeSeries, FullData, SummaryStatistics, Samples
+from chap_core.datatypes import ClimateHealthTimeSeries, FullData, Samples
 import jax
 
 from .data_loader import MultiDataLoader, Batcher
 from .multi_country_model import MultiCountryModule
 from .trainer import Trainer, DataLoader
+from .transforms import year_position_from_datetime
 from ...registry import register_model
 
-from .rnn_model import RNNModel, ARModel, Preprocess, ARModel2, model_makers
+from .rnn_model import RNNModel, model_makers
 from ..jax_models.model_spec import skip_nan_distribution, Poisson, Normal, \
-    NegativeBinomial, NegativeBinomial2, NegativeBinomial3
+    NegativeBinomial2, NegativeBinomial3
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 
 PoissonSkipNaN = skip_nan_distribution(Poisson)
@@ -43,11 +42,6 @@ def interpolate_nans(y):
 
 def l2_regularization(params, scale=1.0):
     return sum(jnp.sum(jnp.square(p)) for p in jax.tree_util.tree_leaves(params) if p.ndim == 2) * scale
-
-
-def year_position_from_datetime(dt: datetime) -> float:
-    day = dt.timetuple().tm_yday
-    return day / 365
 
 
 class TrainState(train_state.TrainState):

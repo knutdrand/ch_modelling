@@ -1,5 +1,5 @@
 # Python version required to run the project.
-python: "3.8.15"
+python: "3.11.3"
 # Dependencies required to build packages. This field is optional.
 build_dependencies:
   - pip
@@ -10,3 +10,4 @@ dependencies:
   - mlflow==2.3
   - flax
   - jax
+  - git+https://github.com/dhis2/chap-core.git@dev
