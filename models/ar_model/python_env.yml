@@ -7,8 +7,8 @@ build_dependencies:
   - wheel==0.37.1
 # Dependencies required to run the project.
 dependencies:
-  - mlflow==2.3
+  - mlflow
   - flax
   - jax
-  - git+https://github.com/dhis2/chap-core.git@dev
-  - git+https://github.com/knutdrand/ch_modelling.git@dev
+  - chap_core @ git+https://github.com/dhis2/chap-core.git@9dbbdea56cc557131eaa3a887280962b30d06fce
+  - git+https://github.com/knutdrand/ch_modelling.git@d7758fac7d4c9aa70bfd405ca08b29e28acdc015
