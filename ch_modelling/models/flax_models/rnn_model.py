@@ -28,6 +28,7 @@ class Preprocess(nn.Module):
 
     @nn.compact
     def __call__(self, x, training=False):
+        n_locations = x.shape[-2]
         loc = nn.Embed(num_embeddings=self.n_locations, features=self.embedding_dim)(
             jnp.arange(self.n_locations))
         axis = -2
