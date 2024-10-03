@@ -1,4 +1,4 @@
-from ch_modelling.models.flax_models.flax_model import NBSkipNaN
+from .flax_model import NBSkipNaN
 import jax
 
 

@@ -5,7 +5,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 model = ARModelTV1()
-model.n_iter = 10
+model.n_iter = 1000
 model.context_length = 52
 model.prediction_length = 12
 model.learning_rate = 1e-5

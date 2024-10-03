@@ -3,7 +3,6 @@ from functools import partial
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 from chap_core.time_period.date_util_wrapper import TimeDelta, delta_month
 from .util import extract_last, extract_sample, array_tree_length
 from chap_core.datatypes import ClimateHealthTimeSeries, ClimateData, HealthData, SummaryStatistics
@@ -17,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def plot_diagnostics(params: dict, name: str):
+    import plotly.express as px
     if isinstance(params, dict):
         for sub_name, sub_params in params.items():
             plot_diagnostics(sub_params, f'{name}.{sub_name}')

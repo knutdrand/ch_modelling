@@ -1,4 +1,3 @@
-import plotly.express as px
 import dataclasses
 from collections import defaultdict
 from functools import partial
@@ -265,6 +264,7 @@ class HierarchicalStateModel(HierarchicalModel):
                        raw_samples[2])
 
     def diagnose(self):
+        import plotly.express as px
         flat_tree = jax.tree_util.tree_flatten(self.params)
         for val in flat_tree[0]:
             if val.ndim == 1:

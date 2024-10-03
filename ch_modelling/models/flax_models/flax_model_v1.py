@@ -1,20 +1,16 @@
 import pickle
-
 import jax
-import numpy as np
-from chap_core.datatypes import FullData, ClimateHealthTimeSeries, Samples
-
-from ch_modelling.models.flax_models.data_loader import DataSet as DLDataSet, DataLoader, interpolate_nans, \
-    SimpleDataLoader
-from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
-
-from ch_modelling.models.flax_models.distribution_head import NBHead, DistributionHead
-from ch_modelling.models.flax_models.flax_model import ProbabilisticFlaxModel
-from ch_modelling.models.flax_models.rnn_model import model_makers
-from ch_modelling.models.flax_models.trainer import Trainer
 import jax.numpy as jnp
+import numpy as np
 
-from ch_modelling.models.flax_models.transforms import get_feature_normalizer, t_chain, get_series, ZScaler
+from chap_core.datatypes import FullData, Samples
+from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
+from .data_loader import DataSet as DLDataSet, SimpleDataLoader
+from .distribution_head import NBHead, DistributionHead
+from .flax_model import ProbabilisticFlaxModel
+from .rnn_model import model_makers
+from .trainer import Trainer
+from .transforms import get_feature_normalizer, get_series, ZScaler
 
 
 class FlaxPredictor:

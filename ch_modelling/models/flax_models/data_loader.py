@@ -1,6 +1,5 @@
 import itertools
 from typing import Iterable, Tuple
-
 import numpy as np
 import jax.numpy as jnp
 

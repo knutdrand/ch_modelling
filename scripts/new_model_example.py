@@ -33,9 +33,9 @@ def validated_train():
 if __name__ == '__main__':
     #validated_train()
     #exit()
-    baseline_model = get_model_from_directory_or_github_url(
-        '/home/knut/Sources/chap_auto_ewars_weekly'
-    )
+    #baseline_model = get_model_from_directory_or_github_url(
+    #    '/home/knut/Sources/chap_auto_ewars_weekly'
+    #)
     #baseline_results = evaluate_model(baseline_model, dataset, prediction_length=12, n_test_sets=41,
                                       #report_filename='laos_weekly_report_2_new.pdf',
                                       #weather_provider=QuickForecastFetcher)
