@@ -1,11 +1,9 @@
-from typing import Iterable, Tuple, Optional
+from typing import Tuple, Optional
 from more_itertools import peekable
 import jax
 import jax.numpy as jnp
-import numpy as np
 import optax
 from flax.training import train_state
-from matplotlib import pyplot as plt
 
 from .data_loader import DataLoader
 

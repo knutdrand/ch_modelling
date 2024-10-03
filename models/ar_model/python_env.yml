@@ -11,4 +11,6 @@ dependencies:
   - flax
   - jax
   - chap_core @ git+https://github.com/dhis2/chap-core.git@9dbbdea56cc557131eaa3a887280962b30d06fce
-  - git+https://github.com/knutdrand/ch_modelling.git@d7758fac7d4c9aa70bfd405ca08b29e28acdc015
+  - git+https://github.com/knutdrand/ch_modelling.git@dev
+
+#d7758fac7d4c9aa70bfd405ca08b29e28acdc015
