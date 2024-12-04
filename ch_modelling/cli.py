@@ -1,5 +1,7 @@
 """Console script for ch_modelling."""
+from pathlib import Path
 from chap_core.datatypes import FullData, remove_field
+import ch_modelling.tuned_models as tuned_models
 from chap_core.external.external_model import get_model_from_directory_or_github_url
 from cyclopts import App
 from chap_core.data import DataSet, datasets
@@ -10,7 +12,8 @@ from chap_core.assessment.prediction_evaluator import evaluate_model, evaluate_m
 import warnings
 warnings.filterwarnings("ignore")
 app = App()
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 @app.command()
 def train(training_data_filename: str, model_path: str, n_epochs: int = 20, prediction_length: int = 3):
@@ -36,28 +39,31 @@ def predict(model_filename: str, historic_data_filename: str, future_data_filena
 
 
 @app.command()
-def evaluate(model_name: str, country_name: str = 'vietnam', against_soa: bool=False):
-    model = registry[model_name]()
-    model.prediction_length = 6
+def evaluate(model_name: str, country_name: str = 'vietnam'):
+    model = getattr(tuned_models, model_name)()
+    model.prediction_length = 3
     data = datasets.ISIMIP_dengue_harmonized[country_name]
-    results, _ = evaluate_model(model, data, prediction_length=6, n_test_sets=7,
-                                report_filename=f'test_report_{model_name}_{country_name}.pdf')
-    if against_soa:
-        model_name = 'https://github.com/sandvelab/chap_auto_ewars'
-        soa_model = get_model_from_directory_or_github_url(model_name)
-        soa_results, _ = evaluate_model(soa_model, data, prediction_length=6, n_test_sets=7,
-                                        report_filename=f'test_report_SOA_{country_name}.pdf')
-        print(soa_results)
+    results, _ = evaluate_model(model, data, prediction_length=3, n_test_sets=10,
+                                report_filename=f'results/test_report_{model_name}_{country_name}.pdf')
     print(results)
 
 @app.command()
 def evaluate_csv(model_name: str, filename: str):
-    model = registry[model_name]()
-    model.prediction_length = 6
+    model = getattr(tuned_models, model_name)()
+    #model = registry[model_name]()
+    model.prediction_length = 3
     data = DataSet.from_csv(filename, FullData)
-    results, _ = evaluate_model(model, data, prediction_length=6, n_test_sets=7,
-                                report_filename=f'{filename}.test_report_{model_name}.pdf')
+    name = Path(filename).stem
+    results, _ = evaluate_model(model, data, prediction_length=3, n_test_sets=7,
+                                report_filename=f'results/{name}.test_report_{model_name}.pdf')
     print(results)
+
+@app.command()
+def validation_train(model_name: str, filename: str):
+    model = getattr(tuned_models, model_name)()
+    model.prediction_length = 3
+    data = DataSet.from_csv(filename, FullData)
+
 
 @app.command()
 def multi_train(country_names_l: str):

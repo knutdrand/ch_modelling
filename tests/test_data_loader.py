@@ -1,4 +1,6 @@
 import jax.numpy as jnp
+from chap_core.data import DataSet as FullDataSet
+from chap_core.datatypes import FullGEEData
 import pytest
 import numpy as np
 
@@ -31,3 +33,6 @@ def test_multi_loader(Xs, ys):
     assert len(first_bach) == 3
     xs, ar_ys, ys = first_bach
     assert all(x.shape == (n, 4, 4) for x, n in zip(xs, n_loc))
+
+def test_twolevel_dataloader():
+     dataset = FullDataSet.from_pickle('/home/knut/Data/ch_data/rwanda_clean_2020_2024_daily.pkl', FullGEEData)

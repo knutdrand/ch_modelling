@@ -10,7 +10,7 @@ import scipy
 from chap_core.datatypes import ClimateHealthTimeSeries, HealthData, SummaryStatistics, ClimateData
 from chap_core.spatio_temporal_data.temporal_dataclass import DataSet
 from chap_core.time_period.date_util_wrapper import delta_month, TimeDelta, TimePeriod, PeriodRange
-from .hmc import sample
+#from .hmc import sample
 from jax.scipy import stats
 from jax.random import PRNGKey
 import jax.numpy as jnp
@@ -123,7 +123,8 @@ class NegativeBinomial3:
         log_unnormalized_prob = self.total_count * jax.nn.log_sigmoid(
             -self.logits
         ) + value * jax.nn.log_sigmoid(self.logits)
-
+        print('####', self.mean)
+        print('>>>>', value)
         log_normalization = (
             -jax.lax.lgamma(self.total_count + value)
             + jax.lax.lgamma(1.0 + value)

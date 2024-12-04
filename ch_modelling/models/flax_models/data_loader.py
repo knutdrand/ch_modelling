@@ -17,7 +17,7 @@ def interpolate_nans(y):
 
 
 class DataSet:
-    def __init__(self, X, y, forecast_length, context_length=None):
+    def __init__(self, X, y, forecast_length, context_length=None, extras = None):
         self._X = X
         self._y = y
         self._context_length = context_length or X.shape[1] - forecast_length
@@ -25,6 +25,9 @@ class DataSet:
         self._total_length = self._context_length + forecast_length
         self._interpolated_y = interpolate_nans(y)
         self._transform = lambda x: x
+        self._length = self._X.shape[1] - self._total_length + 1
+        self._extras = extras or []
+        assert self._length >= 0, f'The context length is too long for the dataset: {self._context_length, self._X.shape[1], forecast_length}'
 
     def set_transform(self, transform):
         self._transform = transform
@@ -33,15 +36,17 @@ class DataSet:
         return (self._X, self._interpolated_y, self._y)[i]
 
     def __len__(self):
-        return self._X.shape[1] - self._total_length + 1
+        return self._length
 
     def __getitem__(self, item):
         start = item
         return self._transform((self._X[:, start:start + self._total_length],
-                                self._interpolated_y[:, start:start + self._context_length])) + (self._y[:, start:start + self._total_length],)
+                                self._interpolated_y[:, start:start + self._context_length])) + (self._y[:, start:start + self._total_length],) + tuple(e[:, start:start + self._total_length] for e in self._extras)
 
     def prediction_instance(self):
-        return self._transform((self._X[:, -self._total_length:], self._interpolated_y[:, -self._context_length:]))
+        return self._transform(
+            (self._X[:, -self._total_length:],
+             self._interpolated_y[:, -self._context_length:]))+tuple(e[:, -self._total_length:].astype(int) for e in self._extras)
 
 class SimpleDataLoader:
     def __init__(self, dataset: DataSet):
@@ -57,7 +62,7 @@ class DataLoader:
         self._X = X  # n_locations, n_periods, n_features
         self._y = y  # n_locations, n_periods
         self._interpolated_y = interpolate_nans(y)
-        self._context_length = context_length or X.shape[1] - forecast_length
+        self._context_length = context_length    or X.shape[1] - forecast_length
         self._forecast_length = forecast_length
         self._total_length = self._context_length + forecast_length
         self.validation_mask = np.ones(X.shape[1] - self._total_length + 1, dtype=bool)

@@ -18,7 +18,7 @@ country_name = "vietnam"
 #model_name = 'chap_ewars'
 for model_name in models:
     model = models[model_name]
-    dataset = ISIMIP_dengue_harmonized[country_name]
+    dataset = DataSet.from_csv('/home/knut/Data/', FullData)
     #model = ar_model_monthly_v1()
     model = models[model_name]
     results = evaluate_model(model, dataset, prediction_length=3, n_test_sets=10,

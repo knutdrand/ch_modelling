@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
-from jax import tree_flatten, tree_leaves, tree_unflatten
+from jax import  tree_leaves, tree_unflatten
+from jax.tree import flatten as tree_flatten
 import jax.numpy as jnp
 
 from chap_core.training_control import TrainingControl

@@ -19,6 +19,17 @@ class MLP(nn.Module):
         return nn.Dense(features=self.output_dim)(x)
 
 
+def embde_location(embed_dim, x):
+    n_locations = x.shape[-3]
+    loc = nn.Embed(num_embeddings=n_locations, features=embed_dim)(
+        jnp.arange(n_locations))
+    axis = -2
+    loc = jnp.repeat(loc[..., None, :], x.shape[axis], axis=axis)
+    if x.ndim == 4:
+        loc = jnp.repeat(loc[None, ...], x.shape[0], axis=0)
+    return loc
+
+
 class Preprocess(nn.Module):
     n_hidden: int = 4
     n_locations: int = 1
@@ -28,13 +39,7 @@ class Preprocess(nn.Module):
 
     @nn.compact
     def __call__(self, x, training=False):
-        n_locations = x.shape[-3]
-        loc = nn.Embed(num_embeddings=n_locations, features=self.embedding_dim)(
-            jnp.arange(n_locations))
-        axis = -2
-        loc = jnp.repeat(loc[..., None, :], x.shape[axis], axis=axis)
-        if x.ndim == 4:
-            loc = jnp.repeat(loc[None, ...], x.shape[0], axis=0)
+        loc = embde_location(self.embedding_dim, x)
         x = jnp.concatenate([x, loc], axis=-1)  # batch x embedding_dim
         layers = [self.n_hidden]
         for i in range(len(layers)):
@@ -44,6 +49,19 @@ class Preprocess(nn.Module):
         x = nn.Dense(features=self.output_dim)(x)
         return nn.Dropout(rate=self.dropout_rate, deterministic=not training)(x)
 
+class MLPWithDropout(nn.Module):
+    hidden_dims: list[int]
+    output_dim: int = 2
+    dropout_rate: float = 0.2
+    @nn.compact
+    def __call__(self, x, training=False):
+        for i in range(len(self.hidden_dims)):
+            x = nn.Dense(features=self.hidden_dims[i])(x)
+            x = nn.relu(x)
+        x = nn.Dropout(rate=self.dropout_rate, deterministic=not training)(x)
+        x = nn.Dense(features=self.output_dim)(x)
+        x = nn.Dropout(rate=self.dropout_rate, deterministic=not training)(x)
+        return x
 
 class RNNModel(nn.Module):
     n_hidden: int = 4
@@ -101,7 +119,7 @@ class ARAdder(nn.Module):
         n_y = y.shape[-1]
         return jnp.concatenate([y[..., None],
                                 x[..., 1:n_y + 1, :]],
-                               axis=-1)
+                                axis=-1)
 
 
 class MultiValueARAdder(nn.Module):
@@ -122,6 +140,7 @@ class ARModel2(nn.Module):
     cell_post: nn.RNNCellBase
     ar_adder: ARAdder = ARAdder()
     output_dim: int = 2
+    future_x_slice: slice = None
 
     @nn.compact
     def __call__(self, x, y, training=False):
@@ -129,12 +148,39 @@ class ARModel2(nn.Module):
         n_y = y.shape[-1]
         prev_x = self.ar_adder(x, y)
         states = nn.RNN(self.cell_pre)(prev_x)
-        new_states = nn.RNN(self.cell_post)(x[..., n_y + 1:, :], initial_carry=states[..., -1, :])
+        new_states = nn.RNN(self.cell_post)(x[..., n_y + 1:, self.future_x_slice or slice(None)], initial_carry=states[..., -1, :])
         x = jnp.concatenate([states, new_states], axis=-2)
         x = nn.Dense(features=6)(x)
         x = nn.relu(x)
         x = nn.Dense(features=self.output_dim)(x)
         return x
+
+class ARModel3(nn.Module):
+    cell_pre: nn.RNNCellBase
+    cell_post: nn.RNNCellBase
+    ar_adder: ARAdder = ARAdder()
+    output_dim: int = 2
+    future_x_slice: slice = None
+
+    @nn.compact
+    def __call__(self, x, y, training=False):
+        n_y = y.shape[-1]
+        embedding = embde_location(3, x)
+        x_pre = x[..., :n_y, :]
+        x_pre = jnp.concatenate([x_pre, embedding[..., :n_y, :]], axis=-1)
+        x_post = x[..., n_y:, self.future_x_slice or slice(None)]
+        x_pre = MLPWithDropout(hidden_dims=[4], output_dim=2)(x_pre, training=training)
+        x_post = jnp.concatenate([x_post, embedding[:, n_y:, :]], axis=-1)
+        x_post = MLPWithDropout(hidden_dims=[3], output_dim=2)(x_post, training=training)
+        prev_x = self.ar_adder(x_pre, y)
+        states = nn.RNN(self.cell_pre)(prev_x)
+        new_states = nn.RNN(self.cell_post)(x[..., n_y + 1:, self.future_x_slice or slice(None)], initial_carry=states[..., -1, :])
+        x = jnp.concatenate([states, new_states], axis=-2)
+        x = nn.Dense(features=6)(x)
+        x = nn.relu(x)
+        x = nn.Dense(features=self.output_dim)(x)
+        return x
+
 
 
 class CompositeModel(nn.Module):
@@ -150,3 +196,4 @@ model_makers = {'base': lambda n_locations: ARModel2(
                          nn.SimpleCell(features=4),
                          nn.SimpleCell(features=4),
                          ar_adder=MultiValueARAdder())}
+
