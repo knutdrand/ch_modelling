@@ -105,8 +105,12 @@ ENV/
 .vscode/
 .idea/
 /scripts/runs/
+
+# data
 *.pdf
-*mlruns/*
+*.csv
+**mlruns**
 *runs/*
-*lightning_logs/*
+**lightning_logs**
 *.html
+*mlflow*
