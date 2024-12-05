@@ -69,6 +69,23 @@ class ZScaler:
         return ZScaler(np.mean(data_set.predictors(0), axis=axes),
                         np.std(data_set.predictors(0), axis=axes))
 
+@dataclasses.dataclass
+class ZScalerAR:
+    mu_x: np.ndarray
+    std_x: np.ndarray
+    mu_ar: np.ndarray
+    std_ar: np.ndarray
+    def __call__(self, x):
+        x, ar, *extra = x
+        return (x - self.mu_x) / self.std_x, (ar - self.mu_ar) / self.std_ar, *extra
+
+    @classmethod
+    def from_data(cls, data_set):
+        # all axes except the last
+        x, ar = (data_set.predictors(0), data_set.predictors(1))
+        axes = tuple(range(data_set.predictors(0).ndim - 1))
+        return ZScalerAR(np.mean(x, axis=axes), np.std(x, axis=axes), np.mean(ar), np.std(ar))
+
 
 class DataDependentTransform:
     def __init__(self, data_set):

@@ -10,7 +10,7 @@ from .distribution_head import NBHead, DistributionHead
 from .flax_model import ProbabilisticFlaxModel
 from .rnn_model import model_makers
 from .trainer import Trainer
-from .transforms import get_feature_normalizer, get_series, ZScaler, get_x, get_covid_mask, get_x_wo_population
+from .transforms import ZScalerAR, get_feature_normalizer, get_series, ZScaler, get_x, get_covid_mask, get_x_wo_population
 
 
 class FlaxPredictor:
@@ -41,15 +41,11 @@ class FlaxPredictor:
         full_x = jnp.concatenate([prev_values, x], axis=1)
         period_lengths = np.array([period.n_days for period in historic_time_period] + [period.n_days for period in time_period])
         period_lengths = np.array([period_lengths]*full_x.shape[0])
-        print(period_lengths.shape)
         dataset = DLDataSet(full_x, prev_y, forecast_length=self.prediction_length, context_length=self.context_length, extras=[period_lengths])
         dataset.set_transform(self._transform)
+
         x, y, *extras = dataset.prediction_instance()
-        print('x', x.shape, 'y', y.shape)
-        print(extras)
-        # full_x, iy = self._transform((full_x, interpolate_nans(prev_y)))
         eta = self.model.apply(self._params, x, y, *extras)  # full_x, iy)
-        #n_prev = prev_values.shape[1]
         samples = self.get_samples(
             eta[:, -self.prediction_length:], num_samples)
         
@@ -105,10 +101,14 @@ class ARModelTV1(ProbabilisticFlaxModel):
         self._validation_loader = SimpleDataLoader(
             DLDataSet(full_x, full_y, forecast_length=self.prediction_length, context_length=self.context_length))
 
-    def train(self, data: DataSet[FullData]):
+    def get_dataset(self, data: DataSet[FullData]):
         data_set = self._get_dataset(data)
-        self._transform = ZScaler.from_data(data_set)
-        data_set.set_transform(self._transform)
+        transform = ZScalerAR.from_data(data_set)
+        data_set.set_transform(transform)
+        return data_set
+
+    def train(self, data: DataSet[FullData]):
+        data_set = self.get_dataset(data)
         self._n_locations = len(data.keys())
         data_loader = SimpleDataLoader(data_set)
         trainer = Trainer(self.model, self.n_iter,
@@ -116,7 +116,7 @@ class ARModelTV1(ProbabilisticFlaxModel):
                           validation_loader=self._validation_loader, l2_c=self.l2_c)
         state = trainer.train(data_loader, self._loss)
         self._params = state.params
-        return FlaxPredictor(self._params, self._transform, self.model, self.prediction_length, self.context_length,
+        return FlaxPredictor(self._params, data_set.get_transform(), self.model, self.prediction_length, self.context_length,
                              data_extractor=self.extract_series)
 
     def load_predictor(self, path):

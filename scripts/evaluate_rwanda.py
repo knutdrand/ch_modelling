@@ -9,23 +9,30 @@ import pandas as pd
 from ch_modelling.models.flax_models.two_level_estimator import TwoLevelEstimator
 import logging
 
+from ch_modelling.models.flax_models.two_level_rnn_model import ConvAggregator, TwoLevelRNN, WeatherAggregator
+from ch_modelling.tuned_models import ar_model_monthly_v2
 from scripts.validation_training import monthly_validated_train
 
 logging.basicConfig(level=logging.INFO)
 dataset = DataSet.from_pickle('/home/knut/Data/ch_data/rwanda_clean_2020_2024_daily.pkl', FullGEEData)
 model = TwoLevelEstimator()
+model.aggregation = ConvAggregator(features=4, kernel_size=(5,), window_size=5, padding='VALID')
+#model.set_model(TwoLevelRNN(weather_aggregator=WeatherAggregator(), n_periods=6, hidden_dim=5))
 model.context_length = 12
 model.prediction_length = 6
 model.l2_c = 0.001
-model.n_iter =  1000
+model.n_iter =  500
 model.learning_rate=0.01
 #monthly_validated_train(dataset, model, level=1)
 
 model_name = 'two_level_estimator'
 file_stem = 'rwanda'
-if False:
-    model = registry.get_model('chap_ewars_monthly')
-    model_name = 'chap_ewars_monthly'
+if True:
+    model_name = 'ar_model_monthly_v2'
+    model = ar_model_monthly_v2()
+
+    #model = registry.get_model('chap_ewars_monthly')
+    #model_name = 'chap_ewars_monthly'
     # def convert(data: FullGEEData):
     #     return FullData(time_period=data.time_period,
     #                     disease_cases=data.disease_cases,

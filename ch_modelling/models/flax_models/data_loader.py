@@ -23,7 +23,7 @@ class DataSet:
         self._context_length = context_length or X.shape[1] - forecast_length
         self._forecast_length = forecast_length
         self._total_length = self._context_length + forecast_length
-        self._interpolated_y = interpolate_nans(y)
+        self._interpolated_y = np.log(interpolate_nans(y)+1)
         self._transform = lambda x: x
         self._length = self._X.shape[1] - self._total_length + 1
         self._extras = extras or []
@@ -31,6 +31,9 @@ class DataSet:
 
     def set_transform(self, transform):
         self._transform = transform
+
+    def get_transform(self):
+        return self._transform
 
     def predictors(self, i):
         return (self._X, self._interpolated_y, self._y)[i]
@@ -93,7 +96,6 @@ class Batcher(DataLoader):
 
     def __iter__(self):
         starts = np.arange(self._X.shape[1] - self._total_length + 1)[self.validation_mask]
-        # permuted_starts = np.random.permutation(starts)
         permuted_starts = starts
         for idx in range(0, len(permuted_starts), self.batch_size):
             starts = permuted_starts[idx:idx + self.batch_size]
@@ -101,8 +103,6 @@ class Batcher(DataLoader):
             y_i = np.array([self._interpolated_y[:, start:start + self._context_length] for start in starts])
             y = np.array([self._y[:, start:start + self._total_length] for start in starts])
             yield x, y_i, y
-            # yield self._X[:, start:start + self._total_length], \
-            #      self._y[:, start:start + self._total_length]
 
 
 class MultiDataLoader:

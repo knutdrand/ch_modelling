@@ -8,18 +8,21 @@ from ch_modelling.models.flax_models.two_level_rnn_model import TwoLevelRNN, Wea
 
 
 class TwoLevelEstimator(ARModelTV1):
+    hidden_dim = 20
+    aggregation = WeatherRNN(hidden_dim=hidden_dim)
+    
     @property
     def model(self):
         return TwoLevelRNN(
-            weather_rnn=WeatherRNN(hidden_dim=20),
+            weather_aggregator=self.aggregation,
             n_periods=self.prediction_length,
-            hidden_dim=20)
+            hidden_dim=self.hidden_dim)
     
 
     def extract_series(self, data):
         return get_multilevl_x(data)
 
-    def _get_dataset(self, data):
+    def _get_dataset(self, data) -> DLDataSet:
         x, y = get_series(data, self.extract_series)
         period_lengths = np.array([period.n_days for period in data.period_range])
         period_lengths=  np.array([period_lengths]*x.shape[0])

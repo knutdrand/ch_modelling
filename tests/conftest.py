@@ -1,8 +1,10 @@
+from pathlib import Path
 import numpy as np
 import pytest
 from chap_core.assessment.dataset_splitting import train_test_split
 from chap_core.data.datasets import ISIMIP_dengue_harmonized
-from chap_core.datatypes import TimeSeriesData, tsdataclass
+from chap_core.datatypes import TimeSeriesData, tsdataclass, FullGEEData
+from chap_core.data import DataSet
 from chap_core.time_period import PeriodRange, Month
 
 @pytest.fixture
@@ -48,3 +50,11 @@ def future_mix_data():
     return MixedData(
         time_period=PeriodRange.from_start_and_n_periods(Month(2022, 1), n_periods),
         disease_cases=np.arange(n_periods), temperature=np.ones((n_periods, 31)))
+
+@pytest.fixture
+def ch_data_path():
+    return Path('/home/knut/Data/ch_data/')
+
+@pytest.fixture
+def rwanda_data():
+    return DataSet.from_pickle('/home/knut/Data/ch_data/rwanda_clean_2020_2024_daily.pkl', FullGEEData)

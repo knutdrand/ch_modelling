@@ -148,7 +148,9 @@ class ARModel2(nn.Module):
         n_y = y.shape[-1]
         prev_x = self.ar_adder(x, y)
         states = nn.RNN(self.cell_pre)(prev_x)
-        new_states = nn.RNN(self.cell_post)(x[..., n_y + 1:, self.future_x_slice or slice(None)], initial_carry=states[..., -1, :])
+        new_states = nn.RNN(self.cell_post)(
+            x[..., n_y + 1:, self.future_x_slice or slice(None)],
+              initial_carry=states[..., -1, :])
         x = jnp.concatenate([states, new_states], axis=-2)
         x = nn.Dense(features=6)(x)
         x = nn.relu(x)
